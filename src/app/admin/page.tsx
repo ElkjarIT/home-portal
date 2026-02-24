@@ -19,6 +19,7 @@ import {
   RefreshCw,
   KeyRound,
   Server,
+  ShieldCheck,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -61,6 +62,26 @@ export default function AdminPage() {
         <section className="mb-8">
           <h3 className="mb-4 text-lg font-semibold">Quick Actions</h3>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {/* Root CA deployment */}
+            <Card>
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="h-5 w-5 text-primary" />
+                  <CardTitle className="text-lg">Root CA</CardTitle>
+                </div>
+                <CardDescription>
+                  Install the step-ca root certificate on network devices
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Link href="/setup">
+                  <Button size="sm" variant="outline">
+                    Setup Instructions
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+
             {/* iCloudPD Re-auth */}
             <Card>
               <CardHeader className="pb-3">

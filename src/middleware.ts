@@ -17,10 +17,11 @@ export default auth((req) => {
     }
   }
 
-  // Protect all other pages except /login, /api, and static assets
+  // Protect all other pages except /login, /setup, /api, and static assets
   if (
     !session &&
     !pathname.startsWith("/login") &&
+    !pathname.startsWith("/setup") &&
     !pathname.startsWith("/api") &&
     !pathname.startsWith("/_next") &&
     pathname !== "/unauthorized"
