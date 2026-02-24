@@ -70,6 +70,28 @@ export const GET = auth(async function GET(req) {
     );
   }
 
+  // Pi-hole (primary)
+  if (process.env.PIHOLE_URL) {
+    checks.push(
+      checkService("Pi-hole", `${process.env.PIHOLE_URL}/admin/api.php?status`)
+    );
+  }
+
+  // Pi-hole (secondary)
+  if (process.env.PIHOLE2_URL) {
+    checks.push(
+      checkService(
+        "Pi-hole Secondary",
+        `${process.env.PIHOLE2_URL}/admin/api.php?status`
+      )
+    );
+  }
+
+  // NAS
+  if (process.env.NAS_URL) {
+    checks.push(checkService("NAS", `${process.env.NAS_URL}`));
+  }
+
   const results = await Promise.all(checks);
   return NextResponse.json(results);
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

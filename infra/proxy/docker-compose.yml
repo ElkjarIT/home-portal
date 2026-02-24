@@ -1,0 +1,35 @@
+name: homelab-proxy
+
+services:
+  step-ca:
+    image: smallstep/step-ca:latest
+    container_name: step-ca
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+    volumes:
+      - step-ca-data:/home/step
+    environment:
+      - DOCKER_STEPCA_INIT_NAME=Aser Home CA
+      - DOCKER_STEPCA_INIT_DNS_NAMES=ca.aser.dk,localhost
+      - DOCKER_STEPCA_INIT_REMOTE_MANAGEMENT=true
+      - DOCKER_STEPCA_INIT_ACME=true
+
+  npm:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: nginx-proxy-manager
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "81:81"
+    volumes:
+      - npm-data:/data
+      - npm-letsencrypt:/etc/letsencrypt
+      - step-ca-certs:/etc/step-certs:ro
+
+volumes:
+  step-ca-data:
+  npm-data:
+  npm-letsencrypt:
+  step-ca-certs:

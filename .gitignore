@@ -38,4 +38,7 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+
+# generated certificates
+infra/proxy/certs/
 next-env.d.ts
