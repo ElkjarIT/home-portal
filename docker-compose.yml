@@ -1,0 +1,13 @@
+name: home-portal
+
+services:
+  portal:
+    build: .
+    container_name: home-portal
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.local
+    environment:
+      - NODE_ENV=production
