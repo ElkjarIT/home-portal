@@ -4,11 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
-import { MonitorDot } from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface SystemStatus {
@@ -36,49 +32,47 @@ export function SystemStatusCard() {
     return () => clearInterval(interval);
   }, []);
 
-  const statusColor: Record<string, string> = {
-    online: "default",
-    offline: "destructive",
-    degraded: "secondary",
-    unknown: "outline",
+  const statusDot: Record<string, string> = {
+    online: "bg-emerald-500",
+    offline: "bg-red-500",
+    degraded: "bg-amber-500",
+    unknown: "bg-gray-400",
   };
+
+  if (systems.length === 0) {
+    return (
+      <Card>
+        <CardContent className="p-3">
+          <p className="text-xs text-muted-foreground">
+            No monitoring data available.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
-      <CardHeader className="pb-3">
-        <div className="flex items-center gap-2">
-          <MonitorDot className="h-5 w-5 text-primary" />
-          <CardTitle className="text-lg">System Status</CardTitle>
-        </div>
-        <CardDescription>Infrastructure health overview</CardDescription>
-      </CardHeader>
-      <CardContent>
-        {systems.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            No status data available. Configure the monitoring API.
-          </p>
-        ) : (
-          <div className="space-y-3">
-            {systems.map((sys) => (
-              <div
-                key={sys.name}
-                className="flex items-center justify-between rounded-md border px-3 py-2"
-              >
-                <div>
-                  <p className="text-sm font-medium">{sys.name}</p>
-                  {sys.detail && (
-                    <p className="text-xs text-muted-foreground">
-                      {sys.detail}
-                    </p>
-                  )}
-                </div>
-                <Badge variant={statusColor[sys.status] as "default" | "destructive" | "secondary" | "outline"}>
+      <CardContent className="p-3">
+        <div className="flex flex-wrap gap-x-4 gap-y-2">
+          {systems.map((sys) => (
+            <div key={sys.name} className="flex items-center gap-1.5">
+              <span
+                className={`h-2 w-2 rounded-full ${statusDot[sys.status] ?? statusDot.unknown}`}
+                title={sys.detail ?? sys.status}
+              />
+              <span className="text-xs font-medium">{sys.name}</span>
+              {sys.status !== "online" && (
+                <Badge
+                  variant={sys.status === "offline" ? "destructive" : "secondary"}
+                  className="text-[10px] px-1 py-0 h-4"
+                >
                   {sys.status}
                 </Badge>
-              </div>
-            ))}
-          </div>
-        )}
+              )}
+            </div>
+          ))}
+        </div>
       </CardContent>
     </Card>
   );

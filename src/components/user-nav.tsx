@@ -14,11 +14,23 @@ import { LogOut, Shield, User } from "lucide-react";
 import Link from "next/link";
 
 export function UserNav() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+
+  if (status === "loading") {
+    return (
+      <Button variant="outline" size="sm" disabled>
+        Loading...
+      </Button>
+    );
+  }
 
   if (!session?.user) {
     return (
-      <Button variant="outline" onClick={() => signIn("microsoft-entra-id")}>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => signIn("microsoft-entra-id", { callbackUrl: "/" })}
+      >
         Sign in
       </Button>
     );

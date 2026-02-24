@@ -2,11 +2,7 @@ import Link from "next/link";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   ExternalLink,
   Image,
@@ -54,31 +50,19 @@ export function ServiceCard({ service }: ServiceCardProps) {
 
   return (
     <Link href={service.url} target="_blank" rel="noopener noreferrer">
-      <Card className="group relative overflow-hidden transition-all hover:shadow-lg hover:border-primary/50 hover:-translate-y-0.5">
-        <CardHeader className="flex flex-row items-center gap-4 pb-2">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
-            <Icon className="h-6 w-6" />
+      <Card className="group relative overflow-hidden transition-all hover:shadow-md hover:border-primary/50 hover:-translate-y-0.5 h-full">
+        <CardContent className="flex items-center gap-3 p-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+            <Icon className="h-4.5 w-4.5" />
           </div>
           <div className="flex-1 min-w-0">
-            <CardTitle className="flex items-center gap-2 text-lg">
+            <p className="text-sm font-medium leading-tight flex items-center gap-1.5">
               {service.name}
-              <ExternalLink className="h-3.5 w-3.5 opacity-0 transition-opacity group-hover:opacity-60" />
-            </CardTitle>
-            <CardDescription className="truncate">
+              <ExternalLink className="h-3 w-3 opacity-0 transition-opacity group-hover:opacity-50 shrink-0" />
+            </p>
+            <p className="text-xs text-muted-foreground truncate">
               {service.description}
-            </CardDescription>
-          </div>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="text-xs">
-              {service.category}
-            </Badge>
-            {service.adminOnly && (
-              <Badge variant="outline" className="text-xs">
-                Admin
-              </Badge>
-            )}
+            </p>
           </div>
         </CardContent>
       </Card>

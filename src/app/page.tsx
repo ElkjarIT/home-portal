@@ -2,31 +2,25 @@
 
 import { useSession } from "next-auth/react";
 import { ServiceCard } from "@/components/service-card";
-import { HaStateCard } from "@/components/ha-state-card";
 import { SystemStatusCard } from "@/components/system-status-card";
 import { UserNav } from "@/components/user-nav";
-import { Separator } from "@/components/ui/separator";
 import { services, categories } from "@/data/services";
 import type { Service } from "@/data/services";
 
-// Customize these entity IDs to match your HA setup
-const watchEntities = [
-  "sensor.proxmox_cpu_usage",
-  "sensor.proxmox_memory_usage",
-  "binary_sensor.iscsi_target",
-  "sensor.immich_server_status",
+// Category display order
+const categoryOrder: Service["category"][] = [
+  "media",
+  "infra",
+  "external",
+  "monitoring",
+  "tools",
 ];
 
 export default function DashboardPage() {
   const { data: session } = useSession();
-  const isAdmin = session?.user?.isAdmin ?? false;
 
-  // Filter services: hide admin-only from non-admins
-  const visibleServices = services.filter(
-    (s) => !s.adminOnly || isAdmin
-  );
-
-  const grouped = visibleServices.reduce(
+  // Show all services — no admin filtering
+  const grouped = services.reduce(
     (acc, service) => {
       if (!acc[service.category]) acc[service.category] = [];
       acc[service.category].push(service);
@@ -35,53 +29,60 @@ export default function DashboardPage() {
     {} as Record<string, Service[]>
   );
 
+  // Sort categories in defined order
+  const sortedCategories = Object.entries(grouped).sort(([a], [b]) => {
+    const ai = categoryOrder.indexOf(a as Service["category"]);
+    const bi = categoryOrder.indexOf(b as Service["category"]);
+    return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+  });
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-semibold tracking-tight">
-              Home Portal
-            </h1>
-          </div>
+        <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          <h1 className="text-lg font-semibold tracking-tight">
+            Home Portal
+          </h1>
           <UserNav />
         </div>
       </header>
 
       {/* Main */}
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <main className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
         {/* Welcome */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold tracking-tight">
+        <div className="mb-4">
+          <h2 className="text-xl font-bold tracking-tight">
             Welcome{session?.user?.name ? `, ${session.user.name.split(" ")[0]}` : ""}
           </h2>
-          <p className="text-muted-foreground">
-            Quick access to your home services and live system status.
+          <p className="text-sm text-muted-foreground">
+            Quick access to your home services.
           </p>
         </div>
 
-        {/* Status cards row */}
-        <div className="mb-8 grid gap-6 md:grid-cols-2">
-          <HaStateCard entities={watchEntities} />
-          <SystemStatusCard />
-        </div>
-
-        <Separator className="mb-8" />
-
         {/* Service cards by category */}
-        {Object.entries(grouped).map(([category, items]) => (
-          <section key={category} className="mb-8">
-            <h3 className="mb-4 text-lg font-semibold">
+        {sortedCategories.map(([category, items]) => (
+          <section key={category} className="mb-4">
+            <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
               {categories[category as Service["category"]] ?? category}
             </h3>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
               {items.map((service) => (
                 <ServiceCard key={service.name} service={service} />
               ))}
             </div>
           </section>
         ))}
+
+        {/* System status — compact row at the bottom */}
+        {session && (
+          <section className="mt-6">
+            <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              System Status
+            </h3>
+            <SystemStatusCard />
+          </section>
+        )}
       </main>
     </div>
   );
