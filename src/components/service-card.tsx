@@ -7,7 +7,24 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink, Image, Home, Server, Wifi, Activity, Wrench, MonitorDot, Shield, HardDrive } from "lucide-react";
+import {
+  ExternalLink,
+  Image,
+  Home,
+  Server,
+  Wifi,
+  Activity,
+  Wrench,
+  MonitorDot,
+  Shield,
+  HardDrive,
+  Globe,
+  Lock,
+  Container,
+  Users,
+  Cloud,
+  Github,
+} from "lucide-react";
 import type { Service } from "@/data/services";
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -20,6 +37,12 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   MonitorDot,
   Shield,
   HardDrive,
+  Globe,
+  Lock,
+  Container,
+  Users,
+  Cloud,
+  Github,
 };
 
 interface ServiceCardProps {

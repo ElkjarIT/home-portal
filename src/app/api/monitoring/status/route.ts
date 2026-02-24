@@ -92,6 +92,18 @@ export const GET = auth(async function GET(req) {
     checks.push(checkService("NAS", `${process.env.NAS_URL}`));
   }
 
+  // Nginx Proxy Manager
+  if (process.env.NPM_URL) {
+    checks.push(checkService("Nginx Proxy Manager", `${process.env.NPM_URL}`));
+  }
+
+  // Portainer
+  if (process.env.PORTAINER_URL) {
+    checks.push(
+      checkService("Portainer", `${process.env.PORTAINER_URL}/api/status`)
+    );
+  }
+
   const results = await Promise.all(checks);
   return NextResponse.json(results);
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
