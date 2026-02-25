@@ -14,14 +14,14 @@ declare module "next-auth" {
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  debug: true,
   providers: [
     MicrosoftEntraID({
       clientId: process.env.AUTH_MICROSOFT_ENTRA_ID_ID!,
       clientSecret: process.env.AUTH_MICROSOFT_ENTRA_ID_SECRET!,
-      issuer: `https://login.microsoftonline.com/${process.env.AUTH_MICROSOFT_ENTRA_ID_TENANT_ID}/v2.0`,
+      tenantId: process.env.AUTH_MICROSOFT_ENTRA_ID_TENANT_ID!,
       authorization: {
         params: {
-          // Request group membership claims
           scope: "openid profile email User.Read",
         },
       },
