@@ -28,7 +28,7 @@ export const services: Service[] = [
   {
     name: "Pi-hole",
     description: "Primary DNS & ad blocking",
-    url: "https://pihole.aser.dk",
+    url: "https://pihole.aser.dk/admin",
     icon: "Shield",
     category: "infra",
     adminOnly: true,
@@ -36,7 +36,7 @@ export const services: Service[] = [
   {
     name: "Pi-hole Secondary",
     description: "Secondary DNS & ad blocking",
-    url: "https://pihole2.aser.dk",
+    url: "https://pihole2.aser.dk/admin",
     icon: "Shield",
     category: "infra",
     adminOnly: true,

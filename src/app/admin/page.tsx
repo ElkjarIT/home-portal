@@ -3,6 +3,8 @@
 import { useSession } from "next-auth/react";
 import { UserNav } from "@/components/user-nav";
 import { AppSidebar, MobileSidebarTrigger } from "@/components/app-sidebar";
+import { ServiceCard } from "@/components/service-card";
+import { SystemStatusCard } from "@/components/system-status-card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,9 +24,33 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import Link from "next/link";
+import { services, categories } from "@/data/services";
+import type { Service } from "@/data/services";
+
+// Categories to show on admin page
+const adminCategories: Service["category"][] = ["infra", "external"];
 
 export default function AdminPage() {
   const { data: session } = useSession();
+
+  const adminServices = services.filter((s) =>
+    adminCategories.includes(s.category)
+  );
+
+  const grouped = adminServices.reduce(
+    (acc, service) => {
+      if (!acc[service.category]) acc[service.category] = [];
+      acc[service.category].push(service);
+      return acc;
+    },
+    {} as Record<string, Service[]>
+  );
+
+  const sortedCategories = Object.entries(grouped).sort(([a], [b]) => {
+    const ai = adminCategories.indexOf(a as Service["category"]);
+    const bi = adminCategories.indexOf(b as Service["category"]);
+    return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -48,19 +74,38 @@ export default function AdminPage() {
         </header>
 
         {/* Main */}
-        <main className="px-4 py-8 sm:px-6 lg:px-8">
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold tracking-tight">
-              Administration
-            </h2>
-            <p className="text-muted-foreground">
-              Manage infrastructure, containers, and authentication.
-            </p>
-          </div>
+        <main className="px-4 py-6 sm:px-6 lg:px-8">
+          {/* Infrastructure & External service cards */}
+          {sortedCategories.map(([category, items]) => (
+            <section key={category} className="mb-6">
+              <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                {categories[category as Service["category"]] ?? category}
+              </h3>
+              <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                {items.map((service) => (
+                  <ServiceCard key={service.name} service={service} />
+                ))}
+              </div>
+            </section>
+          ))}
+
+          <Separator className="mb-6" />
+
+          {/* System Status */}
+          <section className="mb-6">
+            <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              System Status
+            </h3>
+            <SystemStatusCard />
+          </section>
+
+          <Separator className="mb-6" />
 
           {/* Quick actions */}
-          <section className="mb-8">
-            <h3 className="mb-4 text-lg font-semibold">Quick Actions</h3>
+          <section className="mb-6">
+            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              Quick Actions
+            </h3>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {/* Root CA deployment */}
               <Card>
@@ -143,11 +188,13 @@ export default function AdminPage() {
             </div>
           </section>
 
-          <Separator className="mb-8" />
+          <Separator className="mb-6" />
 
           {/* Session info */}
           <section>
-            <h3 className="mb-4 text-lg font-semibold">Session Info</h3>
+            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              Session Info
+            </h3>
             <Card>
               <CardContent className="pt-6">
                 <dl className="grid gap-3 text-sm sm:grid-cols-2">
