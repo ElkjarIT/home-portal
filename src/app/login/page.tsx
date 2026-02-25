@@ -11,19 +11,21 @@ import {
 import { Shield } from "lucide-react";
 
 async function doSignIn() {
-  const csrfRes = await fetch("/api/auth/csrf");
-  const { csrfToken } = await csrfRes.json();
-  const res = await fetch("/api/auth/signin/microsoft-entra-id", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ csrfToken, callbackUrl: "/" }),
-    redirect: "follow",
-  });
-  if (res.redirected) {
-    window.location.href = res.url;
-  } else {
-    window.location.href = res.url;
+  const res = await fetch("/api/auth/csrf");
+  const { csrfToken } = await res.json();
+  const form = document.createElement("form");
+  form.method = "POST";
+  form.action = "/api/auth/signin/microsoft-entra-id";
+  form.style.display = "none";
+  for (const [k, v] of Object.entries({ csrfToken, callbackUrl: "/" })) {
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = k;
+    input.value = v;
+    form.appendChild(input);
   }
+  document.body.appendChild(form);
+  form.submit();
 }
 
 export default function LoginPage() {
