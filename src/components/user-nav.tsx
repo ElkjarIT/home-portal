@@ -12,48 +12,53 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LogOut, Shield, User } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 
-function SignInButton() {
-  const [csrfToken, setCsrfToken] = useState("");
+async function doSignIn() {
+  // Fetch CSRF token, then POST via fetch and follow the redirect manually
+  const csrfRes = await fetch("/api/auth/csrf");
+  const { csrfToken } = await csrfRes.json();
+  const res = await fetch("/api/auth/signin/microsoft-entra-id", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ csrfToken, callbackUrl: "/" }),
+    redirect: "follow",
+  });
+  // Auth.js returns HTML with a redirect — use the final URL
+  if (res.redirected) {
+    window.location.href = res.url;
+  } else {
+    // Fallback: parse for a redirect URL in the response
+    const url = res.url;
+    window.location.href = url;
+  }
+}
 
-  useEffect(() => {
-    fetch("/api/auth/csrf")
-      .then((r) => r.json())
-      .then((d) => setCsrfToken(d.csrfToken))
-      .catch(() => {});
-  }, []);
-
-  return (
-    <form method="post" action="/api/auth/signin/microsoft-entra-id">
-      <input type="hidden" name="csrfToken" value={csrfToken} />
-      <input type="hidden" name="callbackUrl" value="/" />
-      <Button variant="outline" size="sm" type="submit">
-        Sign in
-      </Button>
-    </form>
-  );
+async function doSignOut() {
+  const csrfRes = await fetch("/api/auth/csrf");
+  const { csrfToken } = await csrfRes.json();
+  const res = await fetch("/api/auth/signout", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ csrfToken, callbackUrl: "/" }),
+    redirect: "follow",
+  });
+  if (res.redirected) {
+    window.location.href = res.url;
+  } else {
+    window.location.href = "/";
+  }
 }
 
 function SignOutButton() {
-  const [csrfToken, setCsrfToken] = useState("");
-
-  useEffect(() => {
-    fetch("/api/auth/csrf")
-      .then((r) => r.json())
-      .then((d) => setCsrfToken(d.csrfToken))
-      .catch(() => {});
-  }, []);
-
   return (
-    <form method="post" action="/api/auth/signout">
-      <input type="hidden" name="csrfToken" value={csrfToken} />
-      <input type="hidden" name="callbackUrl" value="/" />
-      <button type="submit" className="flex w-full items-center px-2 py-1.5 text-sm">
-        <LogOut className="mr-2 h-4 w-4" />
-        Sign out
-      </button>
-    </form>
+    <button
+      type="button"
+      onClick={() => doSignOut()}
+      className="flex w-full items-center px-2 py-1.5 text-sm"
+    >
+      <LogOut className="mr-2 h-4 w-4" />
+      Sign out
+    </button>
   );
 }
 
@@ -69,7 +74,11 @@ export function UserNav() {
   }
 
   if (!session?.user) {
-    return <SignInButton />;
+    return (
+      <Button variant="outline" size="sm" onClick={() => doSignIn()}>
+        Sign in
+      </Button>
+    );
   }
 
   const initials = session.user.name
@@ -113,8 +122,9 @@ export function UserNav() {
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild onSelect={(e) => e.preventDefault()}>
-          <SignOutButton />
+        <DropdownMenuItem onClick={() => doSignOut()}>
+          <LogOut className="mr-2 h-4 w-4" />
+          Sign out
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

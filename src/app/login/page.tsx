@@ -9,18 +9,24 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Shield } from "lucide-react";
-import { useEffect, useState } from "react";
+
+async function doSignIn() {
+  const csrfRes = await fetch("/api/auth/csrf");
+  const { csrfToken } = await csrfRes.json();
+  const res = await fetch("/api/auth/signin/microsoft-entra-id", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ csrfToken, callbackUrl: "/" }),
+    redirect: "follow",
+  });
+  if (res.redirected) {
+    window.location.href = res.url;
+  } else {
+    window.location.href = res.url;
+  }
+}
 
 export default function LoginPage() {
-  const [csrfToken, setCsrfToken] = useState("");
-
-  useEffect(() => {
-    fetch("/api/auth/csrf")
-      .then((r) => r.json())
-      .then((d) => setCsrfToken(d.csrfToken))
-      .catch(() => {});
-  }, []);
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <Card className="w-full max-w-sm">
@@ -34,13 +40,9 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form method="post" action="/api/auth/signin/microsoft-entra-id">
-            <input type="hidden" name="csrfToken" value={csrfToken} />
-            <input type="hidden" name="callbackUrl" value="/" />
-            <Button className="w-full" size="lg" type="submit">
-              Sign in with Microsoft
-            </Button>
-          </form>
+          <Button className="w-full" size="lg" onClick={() => doSignIn()}>
+            Sign in with Microsoft
+          </Button>
         </CardContent>
       </Card>
     </div>
