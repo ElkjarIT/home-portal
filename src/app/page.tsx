@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 import { ServiceCard } from "@/components/service-card";
 import { SystemStatusCard } from "@/components/system-status-card";
 import { UserNav } from "@/components/user-nav";
-import { AppSidebar } from "@/components/app-sidebar";
+import { AppSidebar, MobileSidebarTrigger } from "@/components/app-sidebar";
 import { services, categories } from "@/data/services";
 import type { Service } from "@/data/services";
 
@@ -47,7 +47,7 @@ export default function DashboardPage() {
         <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="flex h-14 items-center justify-between px-4 sm:px-6 lg:px-8">
             <div className="flex items-center gap-3">
-              <AppSidebar />
+              <MobileSidebarTrigger />
               <h1 className="text-lg font-semibold tracking-tight lg:hidden">
                 Home Portal
               </h1>
