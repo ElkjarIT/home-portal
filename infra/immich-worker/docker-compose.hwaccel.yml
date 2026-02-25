@@ -1,0 +1,30 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# NVIDIA NVENC hardware-acceleration overlay
+# ─────────────────────────────────────────────────────────────────────────────
+#
+# Merge this file with the base compose to enable GPU-accelerated video
+# transcoding via NVENC on Chappie:
+#
+#   docker compose -f docker-compose.yml -f docker-compose.hwaccel.yml up -d
+#
+# Prerequisites:
+#   1. NVIDIA Game-Ready or Studio driver installed on the Windows host.
+#      (WSL2 GPU support ships with recent NVIDIA drivers — no extra steps.)
+#   2. In Immich → Administration → Video Transcoding:
+#      set "Hardware Acceleration" to NVENC.
+# ─────────────────────────────────────────────────────────────────────────────
+
+name: immich-worker
+
+services:
+  immich-worker:
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu, video]
+    environment:
+      NVIDIA_DRIVER_CAPABILITIES: all
+      NVIDIA_VISIBLE_DEVICES: all
