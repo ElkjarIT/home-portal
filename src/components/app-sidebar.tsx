@@ -1,6 +1,5 @@
 "use client";
 
-import { useSession } from "next-auth/react";
 import { Home, Shield, Menu } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -19,7 +18,6 @@ interface NavItem {
   title: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
-  adminOnly?: boolean;
 }
 
 const navItems: NavItem[] = [
@@ -32,7 +30,6 @@ const navItems: NavItem[] = [
     title: "Admin",
     href: "/admin",
     icon: Shield,
-    adminOnly: true,
   },
 ];
 
@@ -73,13 +70,8 @@ function NavLinks({
 
 /** Mobile sidebar trigger + sheet — place this in the header */
 export function MobileSidebarTrigger() {
-  const { data: session } = useSession();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const isAdmin = (session?.user as { isAdmin?: boolean })?.isAdmin;
-  const filteredItems = navItems.filter((item) =>
-    item.adminOnly ? isAdmin : true
-  );
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -94,7 +86,7 @@ export function MobileSidebarTrigger() {
         </SheetHeader>
         <nav className="space-y-1 p-2">
           <NavLinks
-            items={filteredItems}
+            items={navItems}
             pathname={pathname}
             onNavigate={() => setOpen(false)}
           />
@@ -106,12 +98,7 @@ export function MobileSidebarTrigger() {
 
 /** Desktop sidebar — place this once at top level of the page */
 export function AppSidebar() {
-  const { data: session } = useSession();
   const pathname = usePathname();
-  const isAdmin = (session?.user as { isAdmin?: boolean })?.isAdmin;
-  const filteredItems = navItems.filter((item) =>
-    item.adminOnly ? isAdmin : true
-  );
 
   return (
     <aside className="hidden lg:fixed lg:inset-y-0 lg:z-40 lg:flex lg:w-64 lg:flex-col border-r bg-background">
@@ -119,7 +106,7 @@ export function AppSidebar() {
         <h2 className="text-lg font-semibold tracking-tight">Home Portal</h2>
       </div>
       <nav className="flex-1 space-y-1 p-4">
-        <NavLinks items={filteredItems} pathname={pathname} />
+        <NavLinks items={navItems} pathname={pathname} />
       </nav>
     </aside>
   );
