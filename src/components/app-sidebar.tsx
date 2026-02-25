@@ -18,6 +18,8 @@ interface NavItem {
   title: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
+  color: string;
+  activeColor: string;
 }
 
 const navItems: NavItem[] = [
@@ -25,11 +27,15 @@ const navItems: NavItem[] = [
     title: "Home",
     href: "/",
     icon: Home,
+    color: "text-blue-500",
+    activeColor: "bg-blue-600 text-white",
   },
   {
     title: "Admin",
     href: "/admin",
     icon: Shield,
+    color: "text-red-500",
+    activeColor: "bg-red-600 text-white",
   },
 ];
 
@@ -55,11 +61,11 @@ function NavLinks({
             className={cn(
               "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
               isActive
-                ? "bg-primary text-primary-foreground"
+                ? item.activeColor
                 : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
             )}
           >
-            <Icon className="h-5 w-5" />
+            <Icon className={cn("h-5 w-5", isActive ? "" : item.color)} />
             {item.title}
           </Link>
         );
@@ -81,8 +87,8 @@ export function MobileSidebarTrigger() {
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="w-64 p-0">
-        <SheetHeader className="border-b p-4">
-          <SheetTitle>Home Portal</SheetTitle>
+        <SheetHeader className="border-b p-4 bg-gradient-to-r from-blue-600 to-indigo-600">
+          <SheetTitle className="text-white">Home Portal</SheetTitle>
         </SheetHeader>
         <nav className="space-y-1 p-2">
           <NavLinks
@@ -102,8 +108,8 @@ export function AppSidebar() {
 
   return (
     <aside className="hidden lg:fixed lg:inset-y-0 lg:z-40 lg:flex lg:w-64 lg:flex-col border-r bg-background">
-      <div className="flex h-14 items-center border-b px-6">
-        <h2 className="text-lg font-semibold tracking-tight">Home Portal</h2>
+      <div className="flex h-14 items-center border-b px-6 bg-gradient-to-r from-blue-600 to-indigo-600">
+        <h2 className="text-lg font-semibold tracking-tight text-white">Home Portal</h2>
       </div>
       <nav className="flex-1 space-y-1 p-4">
         <NavLinks items={navItems} pathname={pathname} />

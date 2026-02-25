@@ -1,9 +1,26 @@
+export type ServiceColor =
+  | "blue"
+  | "sky"
+  | "red"
+  | "amber"
+  | "orange"
+  | "emerald"
+  | "teal"
+  | "cyan"
+  | "indigo"
+  | "violet"
+  | "purple"
+  | "rose"
+  | "green"
+  | "slate";
+
 export interface Service {
   name: string;
   description: string;
   url: string;
   icon: string; // Lucide icon name
   category: "media" | "infra" | "monitoring" | "tools" | "external";
+  color: ServiceColor;
   adminOnly?: boolean;
 }
 
@@ -15,6 +32,7 @@ export const services: Service[] = [
     url: "https://immich.aser.dk",
     icon: "Image",
     category: "media",
+    color: "blue",
   },
 
   // Infrastructure — general
@@ -24,6 +42,7 @@ export const services: Service[] = [
     url: "https://ha.aser.dk",
     icon: "Home",
     category: "infra",
+    color: "sky",
   },
   {
     name: "Pi-hole",
@@ -31,6 +50,7 @@ export const services: Service[] = [
     url: "https://pihole.aser.dk/admin",
     icon: "Shield",
     category: "infra",
+    color: "red",
     adminOnly: true,
   },
   {
@@ -39,6 +59,7 @@ export const services: Service[] = [
     url: "https://pihole2.aser.dk/admin",
     icon: "Shield",
     category: "infra",
+    color: "rose",
     adminOnly: true,
   },
   {
@@ -47,6 +68,7 @@ export const services: Service[] = [
     url: "https://nas01.aser.dk",
     icon: "HardDrive",
     category: "infra",
+    color: "amber",
     adminOnly: true,
   },
   {
@@ -55,6 +77,7 @@ export const services: Service[] = [
     url: "https://pve.aser.dk",
     icon: "Server",
     category: "infra",
+    color: "orange",
     adminOnly: true,
   },
   {
@@ -63,6 +86,7 @@ export const services: Service[] = [
     url: "https://npm.aser.dk",
     icon: "Globe",
     category: "infra",
+    color: "emerald",
     adminOnly: true,
   },
   {
@@ -71,6 +95,7 @@ export const services: Service[] = [
     url: "https://ca.aser.dk",
     icon: "Lock",
     category: "infra",
+    color: "teal",
     adminOnly: true,
   },
   {
@@ -79,6 +104,7 @@ export const services: Service[] = [
     url: "https://portainer.aser.dk",
     icon: "Container",
     category: "infra",
+    color: "cyan",
     adminOnly: true,
   },
   {
@@ -87,6 +113,7 @@ export const services: Service[] = [
     url: "https://unifi.ui.com/consoles/F4E2C6EDA3D60000000007D7CE7400000000083F74BA0000000065639621:621370638",
     icon: "Wifi",
     category: "infra",
+    color: "indigo",
     adminOnly: true,
   },
 
@@ -97,6 +124,7 @@ export const services: Service[] = [
     url: "https://portal.azure.com/#view/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/~/Overview",
     icon: "Users",
     category: "external",
+    color: "blue",
     adminOnly: true,
   },
   {
@@ -105,6 +133,7 @@ export const services: Service[] = [
     url: "https://dash.cloudflare.com",
     icon: "Cloud",
     category: "external",
+    color: "orange",
     adminOnly: true,
   },
   {
@@ -113,6 +142,7 @@ export const services: Service[] = [
     url: "https://github.com",
     icon: "Github",
     category: "external",
+    color: "violet",
   },
 ];
 
