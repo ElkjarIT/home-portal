@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react";
 import { ServiceCard } from "@/components/service-card";
 import { SystemStatusCard } from "@/components/system-status-card";
 import { UserNav } from "@/components/user-nav";
+import { AppSidebar } from "@/components/app-sidebar";
 import { services, categories } from "@/data/services";
 import type { Service } from "@/data/services";
 
@@ -38,52 +39,60 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <h1 className="text-lg font-semibold tracking-tight">
-            Home Portal
-          </h1>
-          <UserNav />
-        </div>
-      </header>
+      <AppSidebar />
 
-      {/* Main */}
-      <main className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
-        {/* Welcome */}
-        <div className="mb-4">
-          <h2 className="text-xl font-bold tracking-tight">
-            Welcome{session?.user?.name ? `, ${session.user.name.split(" ")[0]}` : ""}
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Quick access to your home services.
-          </p>
-        </div>
-
-        {/* Service cards by category */}
-        {sortedCategories.map(([category, items]) => (
-          <section key={category} className="mb-4">
-            <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-              {categories[category as Service["category"]] ?? category}
-            </h3>
-            <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-              {items.map((service) => (
-                <ServiceCard key={service.name} service={service} />
-              ))}
+      {/* Main container with sidebar offset */}
+      <div className="lg:pl-64">
+        {/* Header */}
+        <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="flex h-14 items-center justify-between px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center gap-3">
+              <AppSidebar />
+              <h1 className="text-lg font-semibold tracking-tight lg:hidden">
+                Home Portal
+              </h1>
             </div>
-          </section>
-        ))}
+            <UserNav />
+          </div>
+        </header>
 
-        {/* System status — compact row at the bottom */}
-        {session && (
-          <section className="mt-6">
-            <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-              System Status
-            </h3>
-            <SystemStatusCard />
-          </section>
-        )}
-      </main>
+        {/* Main */}
+        <main className="px-4 py-4 sm:px-6 lg:px-8">
+          {/* Welcome */}
+          <div className="mb-4">
+            <h2 className="text-xl font-bold tracking-tight">
+              Welcome{session?.user?.name ? `, ${session.user.name.split(" ")[0]}` : ""}
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Quick access to your home services.
+            </p>
+          </div>
+
+          {/* Service cards by category */}
+          {sortedCategories.map(([category, items]) => (
+            <section key={category} className="mb-4">
+              <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                {categories[category as Service["category"]] ?? category}
+              </h3>
+              <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                {items.map((service) => (
+                  <ServiceCard key={service.name} service={service} />
+                ))}
+              </div>
+            </section>
+          ))}
+
+          {/* System status — compact row at the bottom */}
+          {session && (
+            <section className="mt-6">
+              <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                System Status
+              </h3>
+              <SystemStatusCard />
+            </section>
+          )}
+        </main>
+      </div>
     </div>
   );
 }
