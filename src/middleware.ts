@@ -5,30 +5,40 @@ export default auth((req) => {
   const { pathname } = req.nextUrl;
   const session = req.auth;
 
-  // Protect /admin routes — require admin role
-  if (pathname.startsWith("/admin")) {
-    if (!session) {
-      const loginUrl = new URL("/login", req.url);
-      loginUrl.searchParams.set("callbackUrl", pathname);
-      return NextResponse.redirect(loginUrl);
-    }
-    if (!(session.user as { isAdmin?: boolean })?.isAdmin) {
-      return NextResponse.redirect(new URL("/unauthorized", req.url));
-    }
+  // Public paths — never require auth
+  if (
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/setup") ||
+    pathname.startsWith("/api") ||
+    pathname.startsWith("/_next") ||
+    pathname === "/unauthorized"
+  ) {
+    return NextResponse.next();
   }
 
-  // Protect all other pages except /login, /setup, /api, and static assets
-  if (
-    !session &&
-    !pathname.startsWith("/login") &&
-    !pathname.startsWith("/setup") &&
-    !pathname.startsWith("/api") &&
-    !pathname.startsWith("/_next") &&
-    pathname !== "/unauthorized"
-  ) {
+  // All other routes require authentication
+  if (!session) {
     const loginUrl = new URL("/login", req.url);
     loginUrl.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(loginUrl);
+  }
+
+  const user = session.user as {
+    isAdmin?: boolean;
+    isAuthorized?: boolean;
+  };
+
+  // Admin routes require admin group membership
+  if (pathname.startsWith("/admin")) {
+    if (!user?.isAdmin) {
+      return NextResponse.redirect(new URL("/unauthorized", req.url));
+    }
+    return NextResponse.next();
+  }
+
+  // If group-based access is configured, require Users or Admin group
+  if (process.env.USER_GROUP_ID && user?.isAuthorized === false) {
+    return NextResponse.redirect(new URL("/unauthorized", req.url));
   }
 
   return NextResponse.next();

@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, Shield, User } from "lucide-react";
+import { LogOut, Shield } from "lucide-react";
 import Link from "next/link";
 
 /** Create a real DOM form outside React and submit it — bypasses Next.js routing */
@@ -106,7 +106,7 @@ export function UserNav() {
           </div>
         </div>
         <DropdownMenuSeparator />
-        {session.user.isAdmin && (
+        {(session.user as { isAdmin?: boolean }).isAdmin && (
           <DropdownMenuItem asChild>
             <Link href="/admin">
               <Shield className="mr-2 h-4 w-4" />
@@ -114,12 +114,6 @@ export function UserNav() {
             </Link>
           </DropdownMenuItem>
         )}
-        <DropdownMenuItem asChild>
-          <Link href="/profile">
-            <User className="mr-2 h-4 w-4" />
-            Profile
-          </Link>
-        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => doSignOut()}>
           <LogOut className="mr-2 h-4 w-4" />
