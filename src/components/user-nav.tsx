@@ -1,6 +1,6 @@
 "use client";
 
-import { signIn, signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +12,50 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LogOut, Shield, User } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+
+function SignInButton() {
+  const [csrfToken, setCsrfToken] = useState("");
+
+  useEffect(() => {
+    fetch("/api/auth/csrf")
+      .then((r) => r.json())
+      .then((d) => setCsrfToken(d.csrfToken))
+      .catch(() => {});
+  }, []);
+
+  return (
+    <form method="post" action="/api/auth/signin/microsoft-entra-id">
+      <input type="hidden" name="csrfToken" value={csrfToken} />
+      <input type="hidden" name="callbackUrl" value="/" />
+      <Button variant="outline" size="sm" type="submit">
+        Sign in
+      </Button>
+    </form>
+  );
+}
+
+function SignOutButton() {
+  const [csrfToken, setCsrfToken] = useState("");
+
+  useEffect(() => {
+    fetch("/api/auth/csrf")
+      .then((r) => r.json())
+      .then((d) => setCsrfToken(d.csrfToken))
+      .catch(() => {});
+  }, []);
+
+  return (
+    <form method="post" action="/api/auth/signout">
+      <input type="hidden" name="csrfToken" value={csrfToken} />
+      <input type="hidden" name="callbackUrl" value="/" />
+      <button type="submit" className="flex w-full items-center px-2 py-1.5 text-sm">
+        <LogOut className="mr-2 h-4 w-4" />
+        Sign out
+      </button>
+    </form>
+  );
+}
 
 export function UserNav() {
   const { data: session, status } = useSession();
@@ -25,15 +69,7 @@ export function UserNav() {
   }
 
   if (!session?.user) {
-    return (
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => signIn("microsoft-entra-id", { callbackUrl: "/" })}
-      >
-        Sign in
-      </Button>
-    );
+    return <SignInButton />;
   }
 
   const initials = session.user.name
@@ -77,9 +113,8 @@ export function UserNav() {
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => signOut()}>
-          <LogOut className="mr-2 h-4 w-4" />
-          Sign out
+        <DropdownMenuItem asChild onSelect={(e) => e.preventDefault()}>
+          <SignOutButton />
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

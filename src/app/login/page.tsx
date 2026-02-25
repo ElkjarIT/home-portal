@@ -1,6 +1,5 @@
 "use client";
 
-import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,8 +9,18 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Shield } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export default function LoginPage() {
+  const [csrfToken, setCsrfToken] = useState("");
+
+  useEffect(() => {
+    fetch("/api/auth/csrf")
+      .then((r) => r.json())
+      .then((d) => setCsrfToken(d.csrfToken))
+      .catch(() => {});
+  }, []);
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <Card className="w-full max-w-sm">
@@ -25,13 +34,13 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button
-            className="w-full"
-            size="lg"
-            onClick={() => signIn("microsoft-entra-id", { callbackUrl: "/" })}
-          >
-            Sign in with Microsoft
-          </Button>
+          <form method="post" action="/api/auth/signin/microsoft-entra-id">
+            <input type="hidden" name="csrfToken" value={csrfToken} />
+            <input type="hidden" name="callbackUrl" value="/" />
+            <Button className="w-full" size="lg" type="submit">
+              Sign in with Microsoft
+            </Button>
+          </form>
         </CardContent>
       </Card>
     </div>
