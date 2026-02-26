@@ -18,6 +18,8 @@ name: immich-worker
 
 services:
   immich-worker:
+    # RTX 3080 12 GB — supports several concurrent NVENC sessions.
+    # Actual transcode concurrency is set in Immich Admin → Jobs.
     deploy:
       resources:
         reservations:
@@ -28,6 +30,8 @@ services:
     environment:
       NVIDIA_DRIVER_CAPABILITIES: all
       NVIDIA_VISIBLE_DEVICES: all
+      # Pre-allocate CUDA context once to avoid repeated init overhead
+      CUDA_DEVICE_ORDER: PCI_BUS_ID
 
   immich-machine-learning:
     image: ghcr.io/immich-app/immich-machine-learning:${IMMICH_VERSION:-release}-cuda
@@ -39,5 +43,7 @@ services:
               count: 1
               capabilities: [gpu, compute]
     environment:
+      MACHINE_LEARNING_WORKERS: 3
+      MACHINE_LEARNING_REQUEST_THREADS: 4
       NVIDIA_DRIVER_CAPABILITIES: all
       NVIDIA_VISIBLE_DEVICES: all

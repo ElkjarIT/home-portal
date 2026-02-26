@@ -1,6 +1,13 @@
-# Immich Worker Node — Chappie
+# Immich GPU Worker Node — Chappie
 
-Deploys a **worker-only** Immich container on Chappie (Windows 11 / Docker Desktop / WSL2) that offloads background jobs — primarily **video transcoding** — from the primary Immich server on the Proxmox VM.
+Deploys a **GPU-only** Immich worker on Chappie (Windows 11 / Docker Desktop / WSL2) that offloads **GPU-accelerated** background jobs from the primary Immich server on the Proxmox VM:
+
+- **Video transcoding** — NVENC hardware encode on the RTX 3080
+- **Smart search** — CLIP embeddings via CUDA
+- **Face detection / recognition** — CUDA-accelerated ML inference
+- **Thumbnail generation** — image processing
+
+I/O-heavy workers (metadata extraction, sidecar, library scanning, migrations) remain on the primary server where storage is local via iSCSI. This avoids exiftool timeouts reading large .MOV files over the 1 GbE NFS link.
 
 No state lives on this node. Chappie can be started or stopped at any time; the primary server continues serving the web UI and API uninterrupted, and any in-flight jobs re-queue automatically.
 
@@ -9,17 +16,17 @@ No state lives on this node. Chappie can be started or stopped at any time; the 
 ## Architecture
 
 ```
-Proxmox VM (primary)              Chappie (worker)
+Proxmox VM (primary)              Chappie (GPU worker)
 ─────────────────────             ────────────────────────────────
-immich-server  (API + workers)    immich-worker  (workers only)
-immich-machine-learning           immich-machine-learning  ← already running
-postgres  ◄────────────────────── shared ──────────────────────►
-redis     ◄────────────────────── shared ──────────────────────►
-upload/library (NAS/iSCSI) ◄───── mounted via SMB or NFS ──────►
+immich-server  (API + all workers)  immich-worker  (GPU workers only)
+immich-machine-learning             immich-machine-learning (CUDA)
+postgres  ◄──────────────────────── shared ─────────────────────►
+redis     ◄──────────────────────── shared ─────────────────────►
+upload/library (local/iSCSI) ◄───── mounted via NFS ────────────►
 ```
 
 All instances share the same Postgres database, Redis queue, and uploaded files.
-Immich routes jobs to whichever worker is available.
+Immich routes GPU jobs (transcode, ML inference, thumbnails) to Chappie when it's online; everything else stays on the primary.
 
 ---
 
@@ -51,30 +58,29 @@ Two options:
 
 The worker needs read **and write** access to the same files as the primary server (it writes encoded videos, thumbnails and sidecar metadata).
 
-### Option A — SMB share via WSL2 (recommended for Windows)
+We use a Docker-native NFS volume. Docker Desktop's WSL2 VM handles the NFS mount in the Linux kernel — no WSL2 fstab entries needed.
 
-1. On the Proxmox VM (or NAS), share the upload directory over SMB.
-2. In WSL2:
-   ```bash
-   sudo mkdir -p /mnt/immich_library
-   sudo mount -t cifs //10.10.40.40/immich_library /mnt/immich_library \
-     -o username=YOUR_SMB_USER,password=YOUR_SMB_PASS,uid=1000,gid=1000,file_mode=0770,dir_mode=0770
-   ```
-3. To make the mount persistent, add it to `/etc/fstab` inside WSL2:
-   ```
-   //10.10.40.40/immich_library  /mnt/immich_library  cifs  username=USER,password=PASS,uid=1000,gid=1000,file_mode=0770,dir_mode=0770,_netdev  0  0
-   ```
-4. Set `UPLOAD_LOCATION=/mnt/immich_library` in your `.env`.
+### 1a — Set up the NFS export on the Proxmox VM (one-time)
 
-### Option B — NFS mount via WSL2 (faster for large transfers)
+```bash
+sudo apt install nfs-kernel-server
+echo '/data/immich *(rw,sync,no_subtree_check,no_root_squash,insecure)' | sudo tee -a /etc/exports
+sudo exportfs -ra
+sudo systemctl enable --now nfs-server
+```
 
-1. On the Proxmox VM, export the upload directory via NFS.
-2. In WSL2:
-   ```bash
-   sudo mkdir -p /mnt/immich_library
-   sudo mount -t nfs 10.10.40.40:/srv/immich/library /mnt/immich_library
-   ```
-3. Set `UPLOAD_LOCATION=/mnt/immich_library` in your `.env`.
+Verify: `showmount -e localhost` should list `/data/immich`.
+
+### 1b — Create the Docker NFS volume on Chappie (one-time)
+
+```powershell
+docker volume create --driver local --opt type=nfs `
+  --opt "o=addr=10.10.40.40,rw,nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport" `
+  --opt device=":/data/immich" `
+  immich-data
+```
+
+This mounts the full `/data/immich` tree so that all asset paths (`uploads/`, `icloud/`, `messages/`) match the primary server's container layout at `/opt/immich`.
 
 > **Note:** Do **not** put Postgres data on a network share. Only the upload/library path is shared.
 
@@ -93,7 +99,6 @@ Fill in the values that match your primary Immich server:
 | Variable | Example | Notes |
 |----------|---------|-------|
 | `IMMICH_VERSION` | `release` | Must match the tag on your primary server |
-| `UPLOAD_LOCATION` | `/mnt/immich_library` | Path from Step 1 |
 | `DB_HOSTNAME` | `10.10.40.40` | IP/DNS of your Proxmox VM |
 | `DB_PASSWORD` | `…` | From your primary server's `.env` |
 | `REDIS_HOSTNAME` | `10.10.40.40` | Same host as the primary server |
@@ -118,6 +123,25 @@ docker logs -f immich_worker
 ```
 
 Then in Immich → **Administration → Video Transcoding**, set **Hardware Acceleration** to **NVENC**.
+
+---
+
+## Step 3b — Recommended Admin UI concurrency (RTX 3080 12 GB)
+
+The compose files control how many ML workers and NVENC sessions are *available*, but the actual job concurrency is controlled in the Immich web UI.
+
+Go to **Administration → Jobs** and set these concurrency values:
+
+| Job type | Default | Recommended | Notes |
+|----------|---------|-------------|-------|
+| **Thumbnail Generation** | 3 | **5** | CPU-bound, but more parallelism keeps GPU fed |
+| **Video Transcoding** | 1 | **3–4** | RTX 3080 NVENC handles multiple encodes easily |
+| **Smart Search** | 2 | **4** | CLIP embeddings run on GPU (CUDA ML image) |
+| **Face Detection** | 2 | **4** | Also GPU-accelerated with CUDA ML image |
+| **Sidecar Metadata** | 3 | **3** | Runs on primary only (not offloaded to Chappie) |
+| **Background Task** | 5 | **5** | Keep default |
+
+> **Tip:** After changing concurrency, monitor GPU usage with `nvidia-smi -l 1` inside WSL2 or `nvidia-smi dmon`. Target ~70–85 % GPU utilisation — if it stays below 50 %, bump transcoding or ML concurrency up further. If VRAM usage approaches 12 GB or you see OOM errors, dial back ML concurrency first (face detection and smart search compete for VRAM).
 
 ---
 
@@ -164,6 +188,9 @@ docker compose up -d
 |---------|-------------|-----|
 | Worker starts but picks up no jobs | Version mismatch with primary | Set `IMMICH_VERSION` to the exact tag used on primary |
 | `ECONNREFUSED` on DB or Redis | Firewall blocking ports 5432/6379 | Allow inbound on the Proxmox VM firewall from Chappie's IP |
-| Transcode jobs fail with file errors | Write permission denied on mount | Check `uid`/`gid` and `file_mode` on the CIFS/NFS mount |
+| Transcode jobs fail with file errors | Write permission denied on NFS mount | Use `no_root_squash` in the NFS export; check ownership on `/data/immich` |
+| `mount.nfs: access denied` | NFS export not configured or wrong subnet | Check `/etc/exports` on Proxmox; run `exportfs -ra`; verify with `showmount -e 10.10.40.40` |
 | NVENC jobs fail | Driver/CUDA not visible in WSL2 | Ensure NVIDIA driver ≥ 530 is installed; run `nvidia-smi` in WSL2 |
-| High SMB latency | Network bottleneck | Try NFS instead, or mount inside WSL2 rather than via Windows network drive |
+| Stale NFS handle errors | Proxmox NFS server restarted | `docker compose down; docker volume rm immich-data`; recreate volume and `up -d` |
+| BullMQ lock errors / stalled jobs | I/O-heavy jobs blocking event loop | Verify `IMMICH_WORKERS_INCLUDE` excludes metadata/sidecar; those belong on the primary |
+| `exiftool timeout: waited 120000ms` | Large .MOV reads over NFS saturate 1 GbE | Keep metadataExtraction on primary (iSCSI); do not run it on Chappie |

@@ -1,20 +1,27 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# Immich backend worker — Chappie (Windows 11 / Docker Desktop / WSL2)
+# Immich GPU worker — Chappie (Windows 11 / Docker Desktop / WSL2)
 # ─────────────────────────────────────────────────────────────────────────────
 #
-# Runs ALL Immich background workers (video transcode, thumbnails, smart-search,
-# face detection, etc.) with the API/web layer disabled. ML inference calls are
-# sent to the primary server's machine-learning instance over the network.
+# Runs **only GPU-accelerated** Immich workers:
+#   - videoConversion       (NVENC hardware transcode)
+#   - thumbnailGeneration   (image processing)
+#   - smartSearch           (CLIP embeddings — CUDA)
+#   - faceDetection         (face detection — CUDA)
+#   - facialRecognition     (face recognition — CUDA)
+#
+# I/O-heavy workers (metadataExtraction, sidecar, library, migration, etc.)
+# stay on the primary Proxmox server where storage is local via iSCSI.
+# This avoids exiftool 120 s timeouts reading large .MOV files over NFS/1 GbE.
 #
 # The primary Immich server on the Proxmox VM remains the frontend (web UI,
 # mobile app, API). When Chappie is offline the primary handles everything
 # on its own — no migration or cleanup needed.
 #
 # Prerequisites:
-#   Create the Docker CIFS volume once before first start (see .env.example):
-#   docker volume create --driver local --opt type=cifs \
-#     --opt device=//10.10.40.40/immich-data \
-#     "--opt" "o=addr=10.10.40.40,username=odin,password=<SMB_PASS>,uid=1000,gid=1000,file_mode=0660,dir_mode=0770" \
+#   Create the Docker NFS volume once before first start (see .env.example):
+#   docker volume create --driver local --opt type=nfs \
+#     --opt "o=addr=10.10.40.40,rw,nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport" \
+#     --opt device=":/data/immich" \
 #     immich-data
 #
 # Usage (CPU transcoding):
@@ -40,6 +47,8 @@ services:
 
     environment:
       # Disable the API server; run only background microservices workers.
+      # Note: Immich v2.5.x only supports "api" and "microservices" as worker
+      # types — fine-grained queue selection is not available.
       IMMICH_WORKERS_EXCLUDE: "api"
 
       # ── Upload/library paths — MUST match the primary server's configuration ──
@@ -63,7 +72,7 @@ services:
       TZ: ${TZ:-Europe/Copenhagen}
 
     volumes:
-      # Docker-native CIFS volume mounting the full /data/immich root at /opt/immich.
+      # Docker-native NFS volume mounting the full /data/immich root at /opt/immich.
       - immich-data:/opt/immich
 
   immich-machine-learning:
@@ -73,7 +82,8 @@ services:
     volumes:
       - model-cache:/cache
     environment:
-      MACHINE_LEARNING_WORKERS: 1
+      MACHINE_LEARNING_WORKERS: 3
+      MACHINE_LEARNING_REQUEST_THREADS: 4
       TZ: ${TZ:-Europe/Copenhagen}
 
 volumes:

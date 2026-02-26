@@ -83,7 +83,7 @@ export const services: Service[] = [
   {
     name: "Nginx Proxy Manager",
     description: "Reverse proxy & SSL management",
-    url: "https://npm.aser.dk",
+    url: "https://nginx.aser.dk",
     icon: "Globe",
     category: "infra",
     color: "emerald",
