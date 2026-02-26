@@ -2,9 +2,10 @@
 
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import { Shield } from "lucide-react";
 
-export default function LoginPage() {
+function LoginCard() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") ?? "/";
 
@@ -23,7 +24,7 @@ export default function LoginPage() {
         <button
           type="button"
           onClick={() =>
-            signIn("microsoft-entra-id", { callbackUrl })
+            signIn("microsoft-entra-id", { redirectTo: callbackUrl })
           }
           className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
         >
@@ -37,5 +38,13 @@ export default function LoginPage() {
         </button>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginCard />
+    </Suspense>
   );
 }
