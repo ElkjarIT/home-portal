@@ -332,64 +332,13 @@ export default function DashboardPage() {
                 Smart Home Devices
               </SectionLabel>
               <div className="space-y-3">
-                {/* Overview + Immich side by side */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-                  {/* Left: compact overview cards stacked */}
-                  <div className="space-y-3">
-                    {/* Lights overview */}
-                    <GlassCard className="px-3 py-2.5">
-                      <div className="flex items-center gap-2.5">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-500/20">
-                          <Lightbulb className="h-4 w-4 text-amber-400" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-xs font-semibold text-white">Lights On</p>
-                          <p className="text-[10px] text-white/50">
-                            {loading ? "Loading..." : `${onCount} of ${ROOM_LIGHTS.length}`}
-                          </p>
-                        </div>
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-500/20 text-sm font-bold text-amber-300">
-                          {loading ? "-" : onCount}
-                        </div>
-                      </div>
-                    </GlassCard>
-
-                    {/* Apple TV overview */}
-                    <GlassCard className="px-3 py-2.5">
-                      <div className="flex items-center gap-2.5">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-500/20">
-                          <Tv className="h-4 w-4 text-slate-300" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-xs font-semibold text-white">Apple TV</p>
-                          <p className="truncate text-[10px] text-white/50">
-                            {loading
-                              ? "Loading..."
-                              : appleTvState === "playing"
-                                ? appleTvMedia || appleTvApp || "Playing"
-                                : appleTvState === "paused"
-                                  ? `Paused${appleTvMedia ? ` — ${appleTvMedia}` : ""}`
-                                  : appleTvState === "idle" || appleTvState === "standby"
-                                    ? appleTvApp || "Idle"
-                                    : appleTvState === "off"
-                                      ? "Off"
-                                      : "Unavailable"}
-                          </p>
-                        </div>
-                        {appleTvState === "playing" && (
-                          <span className="flex h-2 w-2 rounded-full bg-green-400 animate-pulse" />
-                        )}
-                      </div>
-                    </GlassCard>
-                  </div>
-
-                  {/* Right: Immich (2/3) */}
-                  <a
-                    href="https://immich.aser.dk"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group lg:col-span-2"
-                  >
+                {/* Immich card */}
+                <a
+                  href="https://immich.aser.dk"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group"
+                >
                   <GlassCard className="p-4 transition-all duration-300 hover:bg-white/[0.12] hover:shadow-[0_0_24px_rgba(59,130,246,0.08)]">
                     {/* Header */}
                     <div className="mb-4 flex items-center gap-3">
@@ -512,7 +461,6 @@ export default function DashboardPage() {
                     )}
                   </GlassCard>
                 </a>
-                </div>
 
                 {/* Lights + Climate side by side */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
