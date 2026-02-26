@@ -159,7 +159,7 @@ function SectionLabel({
     <div className="mb-3 flex items-center justify-between">
       <div className="flex items-center gap-2">
         <Icon className={`h-4 w-4 ${iconColor}`} />
-        <h3 className="text-[11px] font-semibold uppercase tracking-[0.15em] text-white/50">
+        <h3 className="text-xs font-semibold uppercase tracking-[0.15em] text-white/60">
           {children}
         </h3>
       </div>
@@ -295,7 +295,7 @@ export default function DashboardPage() {
               <h1 className="text-xl font-bold text-white sm:text-2xl">
                 Welcome{firstName ? `, ${firstName}` : ""}
               </h1>
-              <p className="text-sm text-white/50">
+              <p className="text-sm text-white/60">
                 Quick access to your home services
               </p>
             </div>
@@ -322,7 +322,7 @@ export default function DashboardPage() {
                       <p className="text-sm font-semibold text-white">
                         Lights On
                       </p>
-                      <p className="text-xs text-white/40">
+                      <p className="text-xs text-white/55">
                         {loading
                           ? "Loading..."
                           : `${onCount} of ${ROOM_LIGHTS.length}`}
@@ -344,7 +344,7 @@ export default function DashboardPage() {
                       <p className="text-sm font-semibold text-white">
                         Apple TV
                       </p>
-                      <p className="truncate text-xs text-white/40">
+                      <p className="truncate text-xs text-white/55">
                         {loading
                           ? "Loading..."
                           : appleTvState === "playing"
@@ -386,21 +386,21 @@ export default function DashboardPage() {
                       <div className="min-w-0 flex-1">
                         <span className="text-sm font-medium text-white">Immich</span>
                         {immichLoading ? (
-                          <p className="text-[11px] text-white/30">Loading…</p>
+                          <p className="text-xs text-white/45">Loading…</p>
                         ) : immichStats ? (
-                          <p className="text-[11px] text-white/40">
+                          <p className="text-xs text-white/55">
                             {immichStats.photos.toLocaleString()} photos · {immichStats.videos.toLocaleString()} videos
                           </p>
                         ) : (
-                          <p className="text-[11px] text-white/30">Photo & video library</p>
+                          <p className="text-xs text-white/45">Photo & video library</p>
                         )}
                       </div>
                       {immichStorage && (
-                        <span className="text-[11px] tabular-nums text-white/40">
+                        <span className="text-xs tabular-nums text-white/55">
                           {immichStorage.diskUsagePercentage.toFixed(0)}%
                         </span>
                       )}
-                      <ChevronRight className="h-4 w-4 shrink-0 text-white/30" />
+                      <ChevronRight className="h-4 w-4 shrink-0 text-white/45" />
                     </div>
                   </GlassCard>
                 </a>
@@ -412,7 +412,7 @@ export default function DashboardPage() {
                     <span className="text-sm font-medium text-white">
                       Room Lights
                     </span>
-                    <span className="flex-1 text-xs text-white/30">
+                    <span className="flex-1 text-xs text-white/45">
                       {loading ? "Loading..." : `${onCount} of ${ROOM_LIGHTS.length} on`}
                     </span>
                   </div>
@@ -438,11 +438,11 @@ export default function DashboardPage() {
                           {isOn ? (
                             <Lightbulb className="h-3.5 w-3.5 shrink-0 text-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.5)]" />
                           ) : (
-                            <LightbulbOff className="h-3.5 w-3.5 shrink-0 text-white/20" />
+                            <LightbulbOff className="h-3.5 w-3.5 shrink-0 text-white/35" />
                           )}
                           <span
                             className={`text-xs font-medium truncate ${
-                              isOn ? "text-amber-200" : "text-white/40"
+                              isOn ? "text-amber-200" : "text-white/55"
                             }`}
                           >
                             {room.name}
@@ -459,7 +459,7 @@ export default function DashboardPage() {
                   <span className="text-sm font-medium text-white">
                     Apple TV
                   </span>
-                  <span className="flex-1 truncate text-xs text-white/30">
+                  <span className="flex-1 truncate text-xs text-white/45">
                     {loading
                       ? "Loading..."
                       : appleTvState === "playing"
@@ -475,7 +475,7 @@ export default function DashboardPage() {
                   {appleTvState === "playing" && (
                     <span className="flex h-2 w-2 rounded-full bg-green-400 animate-pulse" />
                   )}
-                  <ChevronRight className="h-4 w-4 shrink-0 text-white/30" />
+                  <ChevronRight className="h-4 w-4 shrink-0 text-white/45" />
                 </GlassCard>
               </div>
             </section>
@@ -487,7 +487,7 @@ export default function DashboardPage() {
               </SectionLabel>
               <GlassCard className="p-4">
                 {loading && energyLoading ? (
-                  <div className="flex items-center gap-2 text-xs text-white/30">
+                  <div className="flex items-center gap-2 text-xs text-white/45">
                     <Loader2 className="h-3 w-3 animate-spin" />
                     Loading…
                   </div>
@@ -507,13 +507,13 @@ export default function DashboardPage() {
                             <span className="text-2xl font-bold tabular-nums text-white">
                               {isNaN(watts) ? "—" : watts.toLocaleString()}
                             </span>
-                            <span className="text-sm text-white/40">W</span>
-                            <span className="ml-auto text-xs tabular-nums text-white/30">
+                            <span className="text-sm text-white/55">W</span>
+                            <span className="ml-auto text-xs tabular-nums text-white/45">
                               Today: {energyTodayKwh.toFixed(1)} kWh
                             </span>
                           </div>
                           {!isNaN(l1) && (
-                            <div className="mt-1 flex gap-3 text-[10px] text-white/30">
+                            <div className="mt-1 flex gap-3 text-xs text-white/45">
                               <span>L1: {l1}W</span>
                               <span>L2: {isNaN(l2) ? "—" : l2}W</span>
                               <span>L3: {isNaN(l3) ? "—" : l3}W</span>
@@ -532,11 +532,11 @@ export default function DashboardPage() {
                       return (
                         <div className="mb-4 rounded-xl bg-white/[0.03] p-3">
                           <div className="mb-3 flex items-center justify-between">
-                            <p className="text-[10px] font-semibold uppercase tracking-wider text-white/35">
+                            <p className="text-xs font-semibold uppercase tracking-wider text-white/50">
                               <BarChart3 className="mr-1 inline h-3 w-3 -translate-y-px" />
                               Daily Consumption
                             </p>
-                            <span className="text-[10px] tabular-nums text-white/25">avg {avgKwh.toFixed(1)} kWh</span>
+                            <span className="text-xs tabular-nums text-white/40">avg {avgKwh.toFixed(1)} kWh</span>
                           </div>
 
                           {/* Bar chart area */}
@@ -556,8 +556,8 @@ export default function DashboardPage() {
                                 <div key={d.date} className="flex flex-1 flex-col items-center gap-1">
                                   {/* kWh value on top */}
                                   <span
-                                    className={`text-[11px] font-semibold tabular-nums ${
-                                      isToday ? "text-yellow-300" : "text-white/50"
+                                    className={`text-xs font-semibold tabular-nums ${
+                                      isToday ? "text-yellow-300" : "text-white/60"
                                     }`}
                                   >
                                     {d.kwh.toFixed(1)}
@@ -577,8 +577,8 @@ export default function DashboardPage() {
 
                                   {/* Day label */}
                                   <span
-                                    className={`text-[10px] font-medium ${
-                                      isToday ? "text-yellow-300" : "text-white/30"
+                                    className={`text-xs font-medium ${
+                                      isToday ? "text-yellow-300" : "text-white/45"
                                     }`}
                                   >
                                     {isToday ? "I dag" : dayLabel}
@@ -594,7 +594,7 @@ export default function DashboardPage() {
                     {/* Today's usage per device */}
                     {deviceToday.length > 0 && (
                       <div className="mb-4 rounded-xl bg-white/[0.03] p-3">
-                        <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-white/35">
+                        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-white/50">
                           <Zap className="mr-1 inline h-3 w-3 -translate-y-px text-yellow-400" />
                           Today&apos;s Usage by Device
                         </p>
@@ -605,8 +605,8 @@ export default function DashboardPage() {
                             return (
                               <div key={dev.name} className="group">
                                 <div className="flex items-center justify-between mb-0.5">
-                                  <span className="text-xs text-white/60">{dev.name}</span>
-                                  <span className="text-xs font-semibold tabular-nums text-white/70">{dev.kwh.toFixed(2)} kWh</span>
+                                  <span className="text-xs text-white/70">{dev.name}</span>
+                                  <span className="text-xs font-semibold tabular-nums text-white/80">{dev.kwh.toFixed(2)} kWh</span>
                                 </div>
                                 <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/[0.05]">
                                   <div
@@ -623,7 +623,7 @@ export default function DashboardPage() {
 
                     {/* Appliances — live power */}
                     <div className="border-t border-white/[0.06] pt-3">
-                      <p className="mb-2 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-white/35">
+                      <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-white/50">
                         <Plug className="h-3 w-3" /> Live Power
                       </p>
                       <div className="grid grid-cols-2 gap-x-4 gap-y-1 sm:grid-cols-3">
@@ -633,8 +633,8 @@ export default function DashboardPage() {
                           const isActive = !isNaN(w) && w > 5;
                           return (
                             <div key={dev.entity_id} className="flex items-center justify-between rounded-lg px-2 py-1">
-                              <span className={`text-xs truncate ${isActive ? "text-white/70" : "text-white/30"}`}>{dev.name}</span>
-                              <span className={`text-xs tabular-nums ${isActive ? "text-yellow-300" : "text-white/25"}`}>
+                              <span className={`text-xs truncate ${isActive ? "text-white/80" : "text-white/45"}`}>{dev.name}</span>
+                              <span className={`text-xs tabular-nums ${isActive ? "text-yellow-300" : "text-white/40"}`}>
                                 {isNaN(w) ? "—" : `${Math.round(w)}W`}
                               </span>
                             </div>
@@ -657,7 +657,7 @@ export default function DashboardPage() {
                       const battery = battLevel ? parseInt(battLevel.state, 10) : NaN;
                       return (
                         <div className="mt-3 border-t border-white/[0.06] pt-3">
-                          <p className="mb-2 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-white/35">
+                          <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-white/50">
                             <Car className="h-3 w-3" /> EV Charger — Bilskirner
                           </p>
                           <div className="flex items-center gap-3">
@@ -667,18 +667,18 @@ export default function DashboardPage() {
                                 Charging — {powerKw} kW
                               </span>
                             ) : (
-                              <span className="flex items-center gap-1.5 rounded-full bg-white/[0.05] px-2.5 py-1 text-xs text-white/40">
-                                <Circle className="h-2 w-2 fill-white/20 text-white/20" />
+                              <span className="flex items-center gap-1.5 rounded-full bg-white/[0.05] px-2.5 py-1 text-xs text-white/55">
+                                <Circle className="h-2 w-2 fill-white/20 text-white/35" />
                                 {statusText === "disconnected" ? "Disconnected" : statusText === "stopped" ? "Stopped" : statusText === "complete" ? "Complete" : statusText.charAt(0).toUpperCase() + statusText.slice(1)}
                               </span>
                             )}
                             {!isNaN(battery) && (
-                              <span className="text-xs tabular-nums text-white/40">
+                              <span className="text-xs tabular-nums text-white/55">
                                 Battery: {battery}%
                               </span>
                             )}
                             {addedKwh > 0 && (
-                              <span className="text-xs tabular-nums text-white/30">
+                              <span className="text-xs tabular-nums text-white/45">
                                 +{addedKwh.toFixed(1)} kWh
                               </span>
                             )}
@@ -699,7 +699,7 @@ export default function DashboardPage() {
               </SectionLabel>
               <GlassCard className="p-4">
                 {loading ? (
-                  <div className="flex items-center gap-2 text-xs text-white/30">
+                  <div className="flex items-center gap-2 text-xs text-white/45">
                     <Loader2 className="h-3 w-3 animate-spin" />
                     Loading…
                   </div>
@@ -720,7 +720,7 @@ export default function DashboardPage() {
                                 : "fill-red-400 text-red-400"
                             }`}
                           />
-                          <span className="text-xs font-medium text-white/60">
+                          <span className="text-xs font-medium text-white/70">
                             {isOnline ? "Online" : "Offline"}
                           </span>
                         </div>
@@ -740,10 +740,10 @@ export default function DashboardPage() {
                         return (
                           <div key={toner.entity_id}>
                             <div className="mb-1 flex items-center justify-between text-xs">
-                              <span className="font-medium text-white/60">
+                              <span className="font-medium text-white/70">
                                 {toner.name}
                               </span>
-                              <span className="tabular-nums text-white/40">
+                              <span className="tabular-nums text-white/55">
                                 {isNaN(level) ? "N/A" : `${level}%`}
                               </span>
                             </div>
@@ -772,7 +772,7 @@ export default function DashboardPage() {
               </SectionLabel>
               <GlassCard className="divide-y divide-white/[0.06]">
                 {loading ? (
-                  <div className="flex items-center gap-2 p-4 text-xs text-white/30">
+                  <div className="flex items-center gap-2 p-4 text-xs text-white/45">
                     <Loader2 className="h-3 w-3 animate-spin" />
                     Loading…
                   </div>
@@ -817,17 +817,17 @@ export default function DashboardPage() {
                               : "fill-red-400 text-red-400"
                           }`}
                         />
-                        <span className="min-w-0 flex-1 truncate text-sm font-medium text-white/70">
+                        <span className="min-w-0 flex-1 truncate text-sm font-medium text-white/80">
                           {device.name}
                         </span>
                         {uptimeStr && (
-                          <span className="flex items-center gap-1 text-[11px] tabular-nums text-white/35">
+                          <span className="flex items-center gap-1 text-xs tabular-nums text-white/50">
                             <Clock className="h-3 w-3" />
                             {uptimeStr}
                           </span>
                         )}
                         <span
-                          className={`text-[11px] font-medium ${
+                          className={`text-xs font-medium ${
                             isOnline ? "text-green-400/70" : "text-red-400/70"
                           }`}
                         >
@@ -856,7 +856,7 @@ export default function DashboardPage() {
                     >
                       View Automation
                     </a>
-                    <span className="text-white/20">|</span>
+                    <span className="text-white/35">|</span>
                     <a
                       href="https://ha.aser.dk/config/logs"
                       target="_blank"
@@ -889,13 +889,13 @@ export default function DashboardPage() {
         </div>
 
         {/* ——— Footer ——— */}
-        <div className="mt-8 flex items-center gap-4 pb-6 text-xs text-white/30">
+        <div className="mt-8 flex items-center gap-4 pb-6 text-xs text-white/45">
           <Home className="h-4 w-4" />
           <a
             href="https://ha.aser.dk/config/automation/dashboard"
             target="_blank"
             rel="noopener noreferrer"
-            className="transition-colors hover:text-white/50"
+            className="transition-colors hover:text-white/60"
           >
             View Automation
           </a>
@@ -904,7 +904,7 @@ export default function DashboardPage() {
             href="https://ha.aser.dk/config/logs"
             target="_blank"
             rel="noopener noreferrer"
-            className="transition-colors hover:text-white/50"
+            className="transition-colors hover:text-white/60"
           >
             View All Logs
           </a>

@@ -69,7 +69,7 @@ export function TopNav() {
                   className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
                     active
                       ? "bg-white/[0.1] text-white"
-                      : "text-white/50 hover:bg-white/[0.06] hover:text-white/80"
+                      : "text-white/60 hover:bg-white/[0.06] hover:text-white/80"
                   }`}
                 >
                   <Icon className="h-3.5 w-3.5" />
@@ -90,7 +90,7 @@ export function TopNav() {
                 className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
                   linksActive
                     ? "bg-white/[0.1] text-white"
-                    : "text-white/50 hover:bg-white/[0.06] hover:text-white/80"
+                    : "text-white/60 hover:bg-white/[0.06] hover:text-white/80"
                 }`}
               >
                 <ExternalLink className="h-3.5 w-3.5" />
@@ -111,7 +111,7 @@ export function TopNav() {
                 >
                   {/* General links */}
                   <div className="mb-1">
-                    <p className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-white/30">
+                    <p className="px-2 py-1 text-xs font-semibold uppercase tracking-wider text-white/45">
                       Services
                     </p>
                     {generalLinks.map((link) => {
@@ -122,7 +122,7 @@ export function TopNav() {
                           href={link.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-2.5 rounded-lg px-2 py-2 text-sm text-white/70 transition-colors hover:bg-white/[0.08] hover:text-white"
+                          className="flex items-center gap-2.5 rounded-lg px-2 py-2 text-sm text-white/80 transition-colors hover:bg-white/[0.08] hover:text-white"
                         >
                           <div className={`flex h-6 w-6 items-center justify-center rounded-md ${link.iconBg}`}>
                             <Icon className={`h-3.5 w-3.5 ${link.iconColor}`} />
@@ -138,7 +138,7 @@ export function TopNav() {
                     <>
                       <div className="mx-2 my-1 border-t border-red-500/20" />
                       <div>
-                        <p className="flex items-center gap-1 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-red-400/60">
+                        <p className="flex items-center gap-1 px-2 py-1 text-xs font-semibold uppercase tracking-wider text-red-400/60">
                           <Shield className="h-2.5 w-2.5" />
                           Admin
                         </p>
@@ -151,7 +151,7 @@ export function TopNav() {
                                 href={child.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-2.5 rounded-lg px-2 py-2 text-sm text-white/70 transition-colors hover:bg-white/[0.08] hover:text-white"
+                                className="flex items-center gap-2.5 rounded-lg px-2 py-2 text-sm text-white/80 transition-colors hover:bg-white/[0.08] hover:text-white"
                               >
                                 <div className={`flex h-6 w-6 items-center justify-center rounded-md ${link.iconBg}`}>
                                   <Icon className={`h-3.5 w-3.5 ${link.iconColor}`} />
@@ -166,7 +166,7 @@ export function TopNav() {
                               href={link.url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex items-center gap-2.5 rounded-lg px-2 py-2 text-sm text-white/70 transition-colors hover:bg-white/[0.08] hover:text-white"
+                              className="flex items-center gap-2.5 rounded-lg px-2 py-2 text-sm text-white/80 transition-colors hover:bg-white/[0.08] hover:text-white"
                             >
                               <div className={`flex h-6 w-6 items-center justify-center rounded-md ${link.iconBg}`}>
                                 <Icon className={`h-3.5 w-3.5 ${link.iconColor}`} />
@@ -183,7 +183,7 @@ export function TopNav() {
                   <div className="mx-2 mt-1 border-t border-white/[0.06] pt-1">
                     <Link
                       href="/links"
-                      className="flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-medium text-white/40 transition-colors hover:bg-white/[0.06] hover:text-white/70"
+                      className="flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-medium text-white/55 transition-colors hover:bg-white/[0.06] hover:text-white/80"
                       onClick={() => setDropdownOpen(false)}
                     >
                       View all links

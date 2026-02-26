@@ -49,7 +49,7 @@ export default function LinksPage() {
         {/* Page header */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-white">Links</h1>
-          <p className="mt-1 text-sm text-white/40">
+          <p className="mt-1 text-sm text-white/55">
             Quick access to all services and tools
           </p>
         </div>
@@ -58,7 +58,7 @@ export default function LinksPage() {
         <section className="mb-8">
           <div className="mb-4 flex items-center gap-2">
             <Globe2 className="h-4 w-4 text-violet-400" />
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-white/60">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-white/70">
               Services
             </h2>
           </div>
@@ -79,9 +79,9 @@ export default function LinksPage() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-semibold text-white">{link.name}</p>
-                        <p className="truncate text-xs text-white/40">{link.description}</p>
+                        <p className="truncate text-xs text-white/55">{link.description}</p>
                       </div>
-                      <ExternalLink className="h-4 w-4 shrink-0 text-white/20 transition-colors group-hover:text-white/50" />
+                      <ExternalLink className="h-4 w-4 shrink-0 text-white/35 transition-colors group-hover:text-white/60" />
                     </div>
                   </GlassCard>
                 </a>
@@ -94,7 +94,7 @@ export default function LinksPage() {
         <section className="mb-8">
           <div className="mb-4 flex items-center gap-2">
             <ShieldCheck className="h-4 w-4 text-teal-400" />
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-white/60">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-white/70">
               Quick Actions
             </h2>
           </div>
@@ -108,9 +108,9 @@ export default function LinksPage() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold text-white">Root CA</p>
-                    <p className="text-xs text-white/40">Setup network root certificate</p>
+                    <p className="text-xs text-white/55">Setup network root certificate</p>
                   </div>
-                  <ChevronRight className="h-4 w-4 shrink-0 text-white/20 transition-colors group-hover:text-white/50" />
+                  <ChevronRight className="h-4 w-4 shrink-0 text-white/35 transition-colors group-hover:text-white/60" />
                 </div>
               </GlassCard>
             </Link>
@@ -123,14 +123,14 @@ export default function LinksPage() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold text-white">iCloudPD Auth</p>
-                  <p className="text-xs text-white/40">Re-auth for expired cookies</p>
+                  <p className="text-xs text-white/55">Re-auth for expired cookies</p>
                 </div>
               </div>
               <div className="ml-[52px] mt-2 flex gap-2">
                 <button
                   type="button"
                   disabled
-                  className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.08] px-2.5 py-0.5 text-[10px] font-medium text-white/60 disabled:opacity-50"
+                  className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.08] px-2.5 py-0.5 text-xs font-medium text-white/70 disabled:opacity-50"
                 >
                   <RefreshCw className="mr-1 h-3 w-3" />
                   Steffen
@@ -138,7 +138,7 @@ export default function LinksPage() {
                 <button
                   type="button"
                   disabled
-                  className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.08] px-2.5 py-0.5 text-[10px] font-medium text-white/60 disabled:opacity-50"
+                  className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.08] px-2.5 py-0.5 text-xs font-medium text-white/70 disabled:opacity-50"
                 >
                   <RefreshCw className="mr-1 h-3 w-3" />
                   Violeta
@@ -154,7 +154,7 @@ export default function LinksPage() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold text-white">Containers</p>
-                  <p className="text-xs text-white/40">Manage Docker containers</p>
+                  <p className="text-xs text-white/55">Manage Docker containers</p>
                 </div>
               </div>
             </GlassCard>
@@ -169,7 +169,7 @@ export default function LinksPage() {
               <h2 className="text-sm font-semibold uppercase tracking-wider text-red-400/70">
                 Admin Panel
               </h2>
-              <span className="ml-2 rounded-full border border-red-500/30 bg-red-500/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-red-400">
+              <span className="ml-2 rounded-full border border-red-500/30 bg-red-500/15 px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-red-400">
                 Restricted
               </span>
             </div>
@@ -197,9 +197,9 @@ export default function LinksPage() {
                             </div>
                             <div className="min-w-0 flex-1">
                               <p className="text-sm font-semibold text-white">{link.name} — {child.name}</p>
-                              <p className="truncate text-xs text-white/40">{child.url.replace(/^https?:\/\//, "").replace(/\/admin$/, "")}</p>
+                              <p className="truncate text-xs text-white/55">{child.url.replace(/^https?:\/\//, "").replace(/\/admin$/, "")}</p>
                             </div>
-                            <ExternalLink className="h-4 w-4 shrink-0 text-white/20" />
+                            <ExternalLink className="h-4 w-4 shrink-0 text-white/35" />
                           </a>
                         ))}
                       </div>
@@ -219,9 +219,9 @@ export default function LinksPage() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-semibold text-white">{link.name}</p>
-                        <p className="truncate text-xs text-white/40">{link.description}</p>
+                        <p className="truncate text-xs text-white/55">{link.description}</p>
                       </div>
-                      <ExternalLink className="h-4 w-4 shrink-0 text-white/20" />
+                      <ExternalLink className="h-4 w-4 shrink-0 text-white/35" />
                     </a>
                   );
                 })}
