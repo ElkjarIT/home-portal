@@ -1,11 +1,13 @@
 import { signIn } from "@/lib/auth";
 import { Shield } from "lucide-react";
 
-export default function LoginPage({
+export default async function LoginPage({
   searchParams,
 }: {
   searchParams: Promise<{ callbackUrl?: string }>;
 }) {
+  const { callbackUrl = "/" } = await searchParams;
+
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
       <div className="w-full max-w-sm rounded-2xl border border-white/[0.10] bg-white/[0.07] p-8 text-center backdrop-blur-xl">
@@ -19,14 +21,13 @@ export default function LoginPage({
         </p>
 
         <form
-          action={async () => {
+          action={async (formData: FormData) => {
             "use server";
-            const params = await searchParams;
-            await signIn("microsoft-entra-id", {
-              redirectTo: params.callbackUrl ?? "/",
-            });
+            const redirectTo = (formData.get("redirectTo") as string) || "/";
+            await signIn("microsoft-entra-id", { redirectTo });
           }}
         >
+          <input type="hidden" name="redirectTo" value={callbackUrl} />
           <button
             type="submit"
             className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
