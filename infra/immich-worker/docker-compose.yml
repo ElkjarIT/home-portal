@@ -1,12 +1,14 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# Immich worker-only node — Chappie (Windows 11 / Docker Desktop / WSL2)
+# Immich backend stack — Chappie (Windows 11 / Docker Desktop / WSL2)
 # ─────────────────────────────────────────────────────────────────────────────
 #
-# Runs Immich background microservices workers (video transcode, thumbnails,
-# smart-search, etc.) with the API/web layer explicitly disabled.
-# Shares Postgres, Redis and the library mount with the primary Immich server
-# on the Proxmox VM — no state lives here, so this node can be started or
-# stopped at any time without affecting the primary server.
+# Runs Immich background workers (video transcode, thumbnails, smart-search,
+# face detection, etc.) with the API/web layer disabled, plus a co-located
+# machine-learning server for CUDA-accelerated inference on the RTX 3080.
+#
+# The primary Immich server on the Proxmox VM remains the frontend (web UI,
+# mobile app, API). When Chappie is offline the primary handles everything
+# on its own — no migration or cleanup needed.
 #
 # Prerequisites:
 #   Create the Docker CIFS volume once before first start (see .env.example):
@@ -19,7 +21,7 @@
 #   cp .env.example .env    # fill in DB_* and REDIS_*
 #   docker compose up -d
 #
-# Usage (NVIDIA NVENC hardware acceleration):
+# Usage (NVIDIA NVENC + CUDA hardware acceleration):
 #   docker compose -f docker-compose.yml -f docker-compose.hwaccel.yml up -d
 #
 # Graceful shutdown:
@@ -65,9 +67,20 @@ services:
       # Create with `docker volume create immich-data ...` before first start (see header).
       - immich-data:/opt/immich
 
-    # No healthcheck: the worker process has no HTTP endpoint when the API is
-    # excluded. Monitor via `docker logs -f immich_worker` or Immich job queue.
+    depends_on:
+      - immich-machine-learning
+
+  immich-machine-learning:
+    image: ghcr.io/immich-app/immich-machine-learning:${IMMICH_VERSION:-release}
+    container_name: immich_machine_learning
+    restart: unless-stopped
+    volumes:
+      - model-cache:/cache
+    environment:
+      MACHINE_LEARNING_WORKERS: 1
+      TZ: ${TZ:-Europe/Copenhagen}
 
 volumes:
   immich-data:
     external: true   # Created separately via docker volume create (see header)
+  model-cache:       # Local volume for ML model cache — persists across restarts
