@@ -397,15 +397,16 @@ export default function DashboardPage() {
                   href="https://immich.aser.dk"
                   target="_blank"
                   rel="noopener noreferrer"
+                  className="group"
                 >
-                  <GlassCard className="p-4 transition-colors hover:bg-white/[0.12]">
+                  <GlassCard className="p-4 transition-all duration-300 hover:bg-white/[0.12] hover:shadow-[0_0_24px_rgba(59,130,246,0.08)]">
                     {/* Header */}
-                    <div className="mb-3 flex items-center gap-3">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-500/20">
+                    <div className="mb-4 flex items-center gap-3">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-500/20 transition-transform duration-300 group-hover:scale-110">
                         <ImageIcon className="h-4 w-4 text-blue-400" />
                       </div>
                       <span className="text-sm font-medium text-white">Immich</span>
-                      <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-white/45" />
+                      <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-white/45 transition-transform duration-300 group-hover:translate-x-1" />
                     </div>
 
                     {immichLoading ? (
@@ -415,23 +416,24 @@ export default function DashboardPage() {
                     ) : (
                       <div className="grid grid-cols-3 gap-3">
                         {/* Section 1: Library counts */}
-                        <div className="rounded-lg bg-white/[0.04] p-2.5">
-                          <p className="mb-1.5 flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-white/45">
+                        <div className="relative rounded-lg border border-white/[0.06] bg-white/[0.03] p-3 transition-colors duration-300 group-hover:border-blue-400/15 group-hover:bg-blue-500/[0.04]">
+                          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-400/20 to-transparent" />
+                          <p className="mb-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-blue-400/70">
                             <Camera className="h-3 w-3" /> Library
                           </p>
                           {immichStats ? (
-                            <div className="space-y-1">
+                            <div className="space-y-1.5">
                               <div className="flex items-center justify-between">
-                                <span className="text-xs text-white/55">Photos</span>
-                                <span className="text-xs font-semibold tabular-nums text-white/80">{immichStats.photos.toLocaleString()}</span>
+                                <span className="text-xs text-white/50">Photos</span>
+                                <span className="text-xs font-semibold tabular-nums text-white/85">{immichStats.photos.toLocaleString()}</span>
                               </div>
                               <div className="flex items-center justify-between">
-                                <span className="text-xs text-white/55">Videos</span>
-                                <span className="text-xs font-semibold tabular-nums text-white/80">{immichStats.videos.toLocaleString()}</span>
+                                <span className="text-xs text-white/50">Videos</span>
+                                <span className="text-xs font-semibold tabular-nums text-white/85">{immichStats.videos.toLocaleString()}</span>
                               </div>
-                              <div className="flex items-center justify-between border-t border-white/[0.06] pt-1">
-                                <span className="text-xs text-white/55">Total</span>
-                                <span className="text-xs font-bold tabular-nums text-blue-300">{(immichStats.photos + immichStats.videos).toLocaleString()}</span>
+                              <div className="flex items-center justify-between border-t border-white/[0.08] pt-1.5">
+                                <span className="text-xs font-medium text-white/60">Total</span>
+                                <span className="text-sm font-bold tabular-nums text-blue-300">{(immichStats.photos + immichStats.videos).toLocaleString()}</span>
                               </div>
                             </div>
                           ) : (
@@ -440,24 +442,43 @@ export default function DashboardPage() {
                         </div>
 
                         {/* Section 2: Storage */}
-                        <div className="rounded-lg bg-white/[0.04] p-2.5">
-                          <p className="mb-1.5 flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-white/45">
+                        <div className="relative rounded-lg border border-white/[0.06] bg-white/[0.03] p-3 transition-colors duration-300 group-hover:border-blue-400/15 group-hover:bg-blue-500/[0.04]">
+                          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-400/20 to-transparent" />
+                          <p className="mb-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-blue-400/70">
                             <HardDrive className="h-3 w-3" /> Storage
                           </p>
                           {immichStorage ? (
-                            <div className="space-y-1">
+                            <div className="space-y-1.5">
                               <div className="flex items-center justify-between">
-                                <span className="text-xs text-white/55">Used</span>
-                                <span className="text-xs font-semibold tabular-nums text-white/80">{immichStorage.diskUse}</span>
+                                <span className="text-xs text-white/50">Used</span>
+                                <span className="text-xs font-semibold tabular-nums text-white/85">{immichStorage.diskUse}</span>
                               </div>
                               <div className="flex items-center justify-between">
-                                <span className="text-xs text-white/55">Free</span>
-                                <span className="text-xs font-semibold tabular-nums text-white/80">{immichStorage.diskAvailable}</span>
+                                <span className="text-xs text-white/50">Free</span>
+                                <span className="text-xs font-semibold tabular-nums text-white/85">{immichStorage.diskAvailable}</span>
                               </div>
-                              <div className="flex items-center justify-between border-t border-white/[0.06] pt-1">
-                                <span className="text-xs text-white/55">Total</span>
-                                <span className="text-xs font-bold tabular-nums text-blue-300">{immichStorage.diskSize}</span>
+                              <div className="flex items-center justify-between border-t border-white/[0.08] pt-1.5">
+                                <span className="text-xs font-medium text-white/60">Total</span>
+                                <span className="text-sm font-bold tabular-nums text-blue-300">{immichStorage.diskSize}</span>
                               </div>
+                              {/* Storage usage bar */}
+                              {(() => {
+                                const usedMatch = immichStorage.diskUse.match(/([\d.]+)/);
+                                const totalMatch = immichStorage.diskSize.match(/([\d.]+)/);
+                                const usedTB = usedMatch ? parseFloat(usedMatch[1]) : 0;
+                                const totalTB = totalMatch ? parseFloat(totalMatch[1]) : 1;
+                                const usagePct = Math.min(100, (usedTB / totalTB) * 100);
+                                return (
+                                  <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-white/[0.06]">
+                                    <div
+                                      className={`h-full rounded-full transition-all duration-1000 ${
+                                        usagePct > 90 ? "bg-red-400/70" : usagePct > 70 ? "bg-yellow-400/60" : "bg-blue-400/50"
+                                      }`}
+                                      style={{ width: `${usagePct}%` }}
+                                    />
+                                  </div>
+                                );
+                              })()}
                             </div>
                           ) : (
                             <p className="text-xs text-white/40">—</p>
@@ -465,12 +486,13 @@ export default function DashboardPage() {
                         </div>
 
                         {/* Section 3: Top 3 job queues */}
-                        <div className="rounded-lg bg-white/[0.04] p-2.5">
-                          <p className="mb-1.5 flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-white/45">
+                        <div className="relative rounded-lg border border-white/[0.06] bg-white/[0.03] p-3 transition-colors duration-300 group-hover:border-blue-400/15 group-hover:bg-blue-500/[0.04]">
+                          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-400/20 to-transparent" />
+                          <p className="mb-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-blue-400/70">
                             <ListTodo className="h-3 w-3" /> Jobs
                           </p>
                           {immichQueues.length > 0 ? (
-                            <div className="space-y-1">
+                            <div className="space-y-1.5">
                               {[...immichQueues]
                                 .sort((a, b) => (b.active + b.waiting) - (a.active + a.waiting))
                                 .slice(0, 3)
@@ -478,10 +500,15 @@ export default function DashboardPage() {
                                   const total = q.active + q.waiting;
                                   return (
                                     <div key={q.name} className="flex items-center justify-between">
-                                      <span className="text-xs text-white/55 truncate mr-1">{q.name}</span>
-                                      <span className={`text-xs font-semibold tabular-nums ${
-                                        total > 0 ? "text-yellow-300" : "text-white/40"
-                                      }`}>{total}</span>
+                                      <span className="text-xs text-white/50 truncate mr-2">{q.name}</span>
+                                      {total > 0 ? (
+                                        <span className="flex items-center gap-1 text-xs font-semibold tabular-nums text-yellow-300">
+                                          <span className="inline-block h-1.5 w-1.5 rounded-full bg-yellow-400 animate-pulse" />
+                                          {total}
+                                        </span>
+                                      ) : (
+                                        <span className="text-xs tabular-nums text-white/35">{total}</span>
+                                      )}
                                     </div>
                                   );
                                 })}
