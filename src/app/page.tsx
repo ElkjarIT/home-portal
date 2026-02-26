@@ -495,8 +495,10 @@ export default function DashboardPage() {
                   </GlassCard>
                 </a>
 
-                {/* Light entities row */}
-                <GlassCard className="p-4">
+                {/* Lights + Climate side by side */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                {/* Light entities — 2/3 width */}
+                <GlassCard className="p-4 lg:col-span-2">
                   <div className="flex items-center gap-3">
                     <Lightbulb className="h-4 w-4 text-amber-400" />
                     <span className="text-sm font-medium text-white">
@@ -543,7 +545,7 @@ export default function DashboardPage() {
                   </div>
                 </GlassCard>
 
-                {/* Climate / Room Temperatures */}
+                {/* Climate / Room Temperatures — 1/3 width */}
                 <GlassCard className="p-4">
                   <div className="flex items-center gap-3">
                     <Thermometer className="h-4 w-4 text-rose-400" />
@@ -554,7 +556,7 @@ export default function DashboardPage() {
                       {loading ? "Loading..." : "Roth Touchline"}
                     </span>
                   </div>
-                  <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1.5 sm:grid-cols-3">
+                  <div className="mt-3 grid grid-cols-1 gap-y-1.5">
                     {CLIMATE_ROOMS.map((room) => {
                       const entity = haStates.find(
                         (e) => e.entity_id === room.entity_id
@@ -597,6 +599,7 @@ export default function DashboardPage() {
                     })}
                   </div>
                 </GlassCard>
+                </div>
 
                 {/* Apple TV row */}
                 <GlassCard className="flex items-center gap-3 p-4">
