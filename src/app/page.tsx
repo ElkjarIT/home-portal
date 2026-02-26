@@ -881,31 +881,24 @@ export default function DashboardPage() {
                     return (
                       <div
                         key={device.entity_id}
-                        className="flex items-center gap-3 px-4 py-3"
+                        className="flex items-center gap-2 px-3 py-1.5"
                       >
                         <Circle
-                          className={`h-2.5 w-2.5 shrink-0 ${
+                          className={`h-2 w-2 shrink-0 ${
                             isOnline
                               ? "fill-green-400 text-green-400"
                               : "fill-red-400 text-red-400"
                           }`}
                         />
-                        <span className="min-w-0 flex-1 truncate text-sm font-medium text-white/80">
+                        <span className="min-w-0 flex-1 truncate text-xs font-medium text-white/80">
                           {device.name}
                         </span>
                         {uptimeStr && (
-                          <span className="flex items-center gap-1 text-xs tabular-nums text-white/50">
-                            <Clock className="h-3 w-3" />
+                          <span className="flex items-center gap-1 text-xs tabular-nums text-white/45">
+                            <Clock className="h-2.5 w-2.5" />
                             {uptimeStr}
                           </span>
                         )}
-                        <span
-                          className={`text-xs font-medium ${
-                            isOnline ? "text-green-400/70" : "text-red-400/70"
-                          }`}
-                        >
-                          {isOnline ? "Online" : "Offline"}
-                        </span>
                       </div>
                     );
                   })
