@@ -165,6 +165,7 @@ const adminPanelItems = [
 interface HAState {
   entity_id: string;
   state: string;
+  last_changed?: string;
   attributes?: {
     friendly_name?: string;
     media_content_type?: string;
@@ -761,19 +762,23 @@ export default function DashboardPage() {
                       ? haStates.find((e) => e.entity_id === device.uptimeEntity)
                       : null;
 
-                    // Format uptime — HA returns an ISO timestamp for *_uptime sensors
+                    // Format uptime — prefer dedicated uptime sensor, fall back to last_changed on device_tracker
                     let uptimeStr = "";
+                    let bootTime = NaN;
                     if (uptimeEntity && uptimeEntity.state !== "unavailable" && uptimeEntity.state !== "unknown") {
-                      const bootTime = new Date(uptimeEntity.state).getTime();
-                      if (!isNaN(bootTime)) {
-                        const diffMs = Date.now() - bootTime;
-                        const days = Math.floor(diffMs / 86_400_000);
-                        const hours = Math.floor((diffMs % 86_400_000) / 3_600_000);
-                        const mins = Math.floor((diffMs % 3_600_000) / 60_000);
-                        if (days > 0) uptimeStr = `${days}d ${hours}h`;
-                        else if (hours > 0) uptimeStr = `${hours}h ${mins}m`;
-                        else uptimeStr = `${mins}m`;
-                      }
+                      bootTime = new Date(uptimeEntity.state).getTime();
+                    } else if (isOnline && tracker?.last_changed) {
+                      // Use last_changed as "online since" for devices without a dedicated uptime sensor
+                      bootTime = new Date(tracker.last_changed).getTime();
+                    }
+                    if (!isNaN(bootTime)) {
+                      const diffMs = Date.now() - bootTime;
+                      const days = Math.floor(diffMs / 86_400_000);
+                      const hours = Math.floor((diffMs % 86_400_000) / 3_600_000);
+                      const mins = Math.floor((diffMs % 3_600_000) / 60_000);
+                      if (days > 0) uptimeStr = `${days}d ${hours}h`;
+                      else if (hours > 0) uptimeStr = `${hours}h ${mins}m`;
+                      else uptimeStr = `${mins}m`;
                     }
 
                     return (
@@ -944,10 +949,16 @@ export default function DashboardPage() {
             {/* — ADMIN PANEL — */}
             {isAdmin && (
               <section>
-                <SectionLabel icon={Shield} iconColor="text-red-400">
-                  Admin Panel
-                </SectionLabel>
-                <GlassCard className="divide-y divide-white/[0.06]">
+                <div className="mb-3 flex items-center gap-2">
+                  <Shield className="h-4 w-4 text-red-400" />
+                  <h3 className="text-[11px] font-semibold uppercase tracking-[0.15em] text-red-400/70">
+                    Admin Panel
+                  </h3>
+                  <span className="ml-auto rounded-full border border-red-500/30 bg-red-500/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-red-400">
+                    Restricted
+                  </span>
+                </div>
+                <div className="rounded-2xl border border-red-500/20 bg-red-950/20 backdrop-blur-xl divide-y divide-white/[0.06]">
                   {adminPanelItems.map((item) => {
                     const Icon = item.icon;
 
@@ -1009,7 +1020,7 @@ export default function DashboardPage() {
                       </a>
                     );
                   })}
-                </GlassCard>
+                </div>
               </section>
             )}
           </div>
