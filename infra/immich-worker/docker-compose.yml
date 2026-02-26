@@ -1,10 +1,10 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# Immich backend stack — Chappie (Windows 11 / Docker Desktop / WSL2)
+# Immich backend worker — Chappie (Windows 11 / Docker Desktop / WSL2)
 # ─────────────────────────────────────────────────────────────────────────────
 #
-# Runs Immich background workers (video transcode, thumbnails, smart-search,
-# face detection, etc.) with the API/web layer disabled, plus a co-located
-# machine-learning server for CUDA-accelerated inference on the RTX 3080.
+# Runs ALL Immich background workers (video transcode, thumbnails, smart-search,
+# face detection, etc.) with the API/web layer disabled. ML inference calls are
+# sent to the primary server's machine-learning instance over the network.
 #
 # The primary Immich server on the Proxmox VM remains the frontend (web UI,
 # mobile app, API). When Chappie is offline the primary handles everything
@@ -18,10 +18,10 @@
 #     immich-data
 #
 # Usage (CPU transcoding):
-#   cp .env.example .env    # fill in DB_* and REDIS_*
+#   cp .env.example .env    # fill in DB_*, REDIS_*
 #   docker compose up -d
 #
-# Usage (NVIDIA NVENC + CUDA hardware acceleration):
+# Usage (NVIDIA NVENC hardware acceleration):
 #   docker compose -f docker-compose.yml -f docker-compose.hwaccel.yml up -d
 #
 # Graceful shutdown:
@@ -43,9 +43,11 @@ services:
       IMMICH_WORKERS_EXCLUDE: "api"
 
       # ── Upload/library paths — MUST match the primary server's configuration ──
-      # The primary server uses /opt/immich/uploads inside the container.
       UPLOAD_LOCATION: /opt/immich/uploads
       IMMICH_MEDIA_LOCATION: /opt/immich/uploads
+
+      # ── ML server — use the primary server's instance over the network ────
+      IMMICH_MACHINE_LEARNING_URL: http://${DB_HOSTNAME}:3003
 
       # ── Database (primary server) ─────────────────────────────────────────
       DB_HOSTNAME: ${DB_HOSTNAME}
@@ -62,25 +64,8 @@ services:
 
     volumes:
       # Docker-native CIFS volume mounting the full /data/immich root at /opt/immich.
-      # This gives the worker access to uploads, icloud, messages and all other paths
-      # that assets may reference — matching the primary server's full volume layout.
-      # Create with `docker volume create immich-data ...` before first start (see header).
       - immich-data:/opt/immich
-
-    depends_on:
-      - immich-machine-learning
-
-  immich-machine-learning:
-    image: ghcr.io/immich-app/immich-machine-learning:${IMMICH_VERSION:-release}
-    container_name: immich_machine_learning
-    restart: unless-stopped
-    volumes:
-      - model-cache:/cache
-    environment:
-      MACHINE_LEARNING_WORKERS: 1
-      TZ: ${TZ:-Europe/Copenhagen}
 
 volumes:
   immich-data:
     external: true   # Created separately via docker volume create (see header)
-  model-cache:       # Local volume for ML model cache — persists across restarts
