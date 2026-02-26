@@ -810,6 +810,8 @@ export default function DashboardPage() {
                       const addedKwh = energyAdded ? parseFloat(energyAdded.state) : 0;
                       const battery = battLevel ? parseInt(battLevel.state, 10) : NaN;
                       const battPct = isNaN(battery) ? 0 : Math.min(100, Math.max(0, battery));
+                      // Battery color tiers: 0-10 red, 11-19 yellow, 20+ green
+                      const battColor = battPct >= 20 ? "green" : battPct >= 11 ? "yellow" : "red";
                       const ratedKm = rangeRated ? parseFloat(rangeRated.state) : NaN;
                       const estKm = rangeEst ? parseFloat(rangeEst.state) : NaN;
                       const idealKm = rangeIdeal ? parseFloat(rangeIdeal.state) : NaN;
@@ -836,15 +838,17 @@ export default function DashboardPage() {
                             {/* Large battery visual */}
                             <div className="relative flex-shrink-0" style={{ width: 88, height: 44 }}>
                               <div className={`absolute inset-0 rounded-lg border-2 overflow-hidden ${
-                                isCharging ? "border-green-400/60 shadow-[0_0_8px_rgba(74,222,128,0.15)]" : battPct > 20 ? "border-yellow-400/40" : "border-red-400/50"
+                                isCharging ? "border-green-400/60 shadow-[0_0_8px_rgba(74,222,128,0.15)]" : battColor === "green" ? "border-green-400/40" : battColor === "yellow" ? "border-yellow-400/40" : "border-red-400/50"
                               }`}>
                                 <div
                                   className={`absolute bottom-0 left-0 top-0 transition-all duration-1000 ${
                                     isCharging
                                       ? "bg-gradient-to-r from-green-500/60 to-green-400/40"
-                                      : battPct > 20
-                                        ? "bg-gradient-to-r from-yellow-500/50 to-yellow-400/30"
-                                        : "bg-gradient-to-r from-red-500/60 to-red-400/40"
+                                      : battColor === "green"
+                                        ? "bg-gradient-to-r from-green-500/50 to-green-400/30"
+                                        : battColor === "yellow"
+                                          ? "bg-gradient-to-r from-yellow-500/50 to-yellow-400/30"
+                                          : "bg-gradient-to-r from-red-500/60 to-red-400/40"
                                   }`}
                                   style={{ width: `${battPct}%` }}
                                 >
@@ -856,11 +860,11 @@ export default function DashboardPage() {
                                 </div>
                               </div>
                               <div className={`absolute right-[-6px] top-[12px] h-[20px] w-[4px] rounded-r-sm ${
-                                isCharging ? "bg-green-400/50" : battPct > 20 ? "bg-yellow-400/30" : "bg-red-400/40"
+                                isCharging ? "bg-green-400/50" : battColor === "green" ? "bg-green-400/30" : battColor === "yellow" ? "bg-yellow-400/30" : "bg-red-400/40"
                               }`} />
                               <div className="absolute inset-0 flex items-center justify-center">
                                 <span className={`text-sm font-bold tabular-nums ${
-                                  isCharging ? "text-green-300 animate-battery-pulse" : battPct > 20 ? "text-yellow-300" : "text-red-300"
+                                  isCharging ? "text-green-300 animate-battery-pulse" : battColor === "green" ? "text-green-300" : battColor === "yellow" ? "text-yellow-300" : "text-red-300"
                                 }`}>
                                   {isNaN(battery) ? "—" : `${battery}%`}
                                 </span>
