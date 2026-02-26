@@ -20,8 +20,9 @@ const WANTED_ENTITIES = new Set([
   "media_player.stuen_tv",
 ]);
 
-export const GET = auth(async function GET(req) {
-  if (!req.auth) {
+export async function GET() {
+  const session = await auth();
+  if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -52,7 +53,6 @@ export const GET = auth(async function GET(req) {
     }
 
     const all = await res.json();
-    // Filter to only the entities we need — reduces response from ~430KB to <5KB
     const filtered = Array.isArray(all)
       ? all.filter((e: { entity_id: string }) => WANTED_ENTITIES.has(e.entity_id))
       : [];
@@ -63,5 +63,4 @@ export const GET = auth(async function GET(req) {
       { status: 502 }
     );
   }
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-}) as any;
+}

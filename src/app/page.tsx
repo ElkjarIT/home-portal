@@ -242,7 +242,7 @@ export default function DashboardPage() {
       }
     }
     fetchStates();
-    const iv = setInterval(fetchStates, 15_000);
+    const iv = setInterval(fetchStates, 10_000);
     return () => clearInterval(iv);
   }, []);
 
@@ -262,7 +262,7 @@ export default function DashboardPage() {
       }
     }
     fetchImmichJobs();
-    const iv = setInterval(fetchImmichJobs, 30_000);
+    const iv = setInterval(fetchImmichJobs, 10_000);
     return () => clearInterval(iv);
   }, []);
 

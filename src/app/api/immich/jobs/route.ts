@@ -39,8 +39,9 @@ const LABELS: Record<string, string> = {
   editor: "Editor",
 };
 
-export const GET = auth(async function GET(req) {
-  if (!req.auth) {
+export async function GET() {
+  const session = await auth();
+  if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -93,5 +94,4 @@ export const GET = auth(async function GET(req) {
       { status: 502 }
     );
   }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-}) as any;
+}
