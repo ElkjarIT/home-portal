@@ -70,6 +70,8 @@ export const GET = auth(async function GET(req) {
     }
 
     const data: Record<string, JobEntry> = await res.json();
+    console.log("[Immich] Fetched jobs, keys:", Object.keys(data).length,
+      "sample:", JSON.stringify(Object.entries(data).slice(0, 2).map(([k, v]) => ({ k, pending: v.jobCounts.active + v.jobCounts.waiting }))));
 
     // Build sorted list — top 3 queues by pending work (active + waiting)
     const queues = Object.entries(data)
