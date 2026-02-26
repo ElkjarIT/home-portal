@@ -73,6 +73,14 @@ const WANTED_ENTITIES = new Set([
   "sensor.bilskirner_battery_level",
   "sensor.bilskirner_charging",
   "binary_sensor.bilskirner_charging",
+  // Tessie — Range / phantom drain
+  "sensor.bilskirner_battery_range",
+  "sensor.bilskirner_battery_range_estimate",
+  "sensor.bilskirner_battery_range_ideal",
+  "sensor.bilskirner_odometer",
+  "sensor.bilskirner_inside_temperature",
+  "sensor.bilskirner_outside_temperature",
+  "number.bilskirner_charge_limit",
 ]);
 
 export async function GET() {

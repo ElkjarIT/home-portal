@@ -7,21 +7,14 @@ req = urllib.request.Request(url, headers={"Authorization": f"Bearer {token}"})
 with urllib.request.urlopen(req) as resp:
     states = json.load(resp)
 
-# Find all light entities to see what exists
-print("=== ALL LIGHT ENTITIES ===")
-for s in states:
-    eid = s["entity_id"]
-    if eid.startswith("light."):
-        name = s["attributes"].get("friendly_name", "")
-        state = s["state"]
-        model = s["attributes"].get("model", "")
-        supported = s["attributes"].get("supported_color_modes", [])
-        print(f"{eid} | {name} | {state} | model={model} | modes={supported}")
-
-print("\n=== SHELLY ENTITIES (any domain) ===")
+# Find all Bilskirner / Tessie entities
+print("=== BILSKIRNER / TESSIE ENTITIES ===")
 for s in states:
     eid = s["entity_id"]
     name = s["attributes"].get("friendly_name", "")
-    if "shelly" in (eid + name).lower():
+    search = (eid + name).lower()
+    if "bilskirner" in search or "tessie" in search:
         state = s["state"]
-        print(f"{eid} | {name} | {state}")
+        unit = s["attributes"].get("unit_of_measurement", "")
+        device_class = s["attributes"].get("device_class", "")
+        print(f"{eid} | {name} | {state} {unit} | class={device_class}")

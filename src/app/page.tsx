@@ -27,6 +27,8 @@ import {
   Film,
   Camera,
   ListTodo,
+  Gauge,
+  ThermometerSnowflake,
 } from "lucide-react";
 
 // ——— Room lights from HA ———
@@ -797,27 +799,47 @@ export default function DashboardPage() {
                       const chargerPower = haStates.find((e) => e.entity_id === "sensor.bilskirner_charger_power");
                       const energyAdded = haStates.find((e) => e.entity_id === "sensor.bilskirner_charge_energy_added");
                       const battLevel = haStates.find((e) => e.entity_id === "sensor.bilskirner_battery_level");
+                      const rangeRated = haStates.find((e) => e.entity_id === "sensor.bilskirner_battery_range");
+                      const rangeEst = haStates.find((e) => e.entity_id === "sensor.bilskirner_battery_range_estimate");
+                      const rangeIdeal = haStates.find((e) => e.entity_id === "sensor.bilskirner_battery_range_ideal");
+                      const insideTemp = haStates.find((e) => e.entity_id === "sensor.bilskirner_inside_temperature");
+                      const outsideTemp = haStates.find((e) => e.entity_id === "sensor.bilskirner_outside_temperature");
+                      const chargeLimit = haStates.find((e) => e.entity_id === "number.bilskirner_charge_limit");
                       const isCharging = chargingBin?.state === "on";
                       const statusText = chargingEnum?.state ?? "unknown";
                       const powerKw = chargerPower ? parseFloat(chargerPower.state) : 0;
                       const addedKwh = energyAdded ? parseFloat(energyAdded.state) : 0;
                       const battery = battLevel ? parseInt(battLevel.state, 10) : NaN;
                       const battPct = isNaN(battery) ? 0 : Math.min(100, Math.max(0, battery));
-                      const battColor = isCharging ? "green" : battPct > 20 ? "yellow" : "red";
+                      const ratedKm = rangeRated ? parseFloat(rangeRated.state) : NaN;
+                      const estKm = rangeEst ? parseFloat(rangeEst.state) : NaN;
+                      const idealKm = rangeIdeal ? parseFloat(rangeIdeal.state) : NaN;
+                      const phantomDrain = !isNaN(ratedKm) && !isNaN(estKm) ? ratedKm - estKm : NaN;
+                      const insideC = insideTemp ? parseFloat(insideTemp.state) : NaN;
+                      const outsideC = outsideTemp ? parseFloat(outsideTemp.state) : NaN;
+                      const limitPct = chargeLimit ? parseInt(chargeLimit.state, 10) : NaN;
                       const statusLabel = statusText === "disconnected" ? "Disconnected" : statusText === "stopped" ? "Stopped" : statusText === "complete" ? "Complete" : statusText.charAt(0).toUpperCase() + statusText.slice(1);
                       return (
-                        <div className="mt-4 rounded-xl border border-white/[0.08] bg-white/[0.04] p-4">
+                        <div className={`mt-4 rounded-xl border p-4 ${
+                          isCharging
+                            ? "border-green-400/20 bg-green-500/[0.04] shadow-[0_0_20px_rgba(74,222,128,0.06)]"
+                            : "border-white/[0.08] bg-white/[0.04]"
+                        }`}>
                           <p className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-white/55">
-                            <Car className="h-3.5 w-3.5" /> EV Charger — Bilskirner
+                            <Car className="h-3.5 w-3.5" /> EV — Bilskirner
+                            {isCharging && (
+                              <span className="ml-auto flex items-center gap-1 animate-pulse text-green-400">
+                                <Zap className="h-3 w-3" /> CHARGING
+                              </span>
+                            )}
                           </p>
-                          <div className="flex items-center gap-5">
+
+                          <div className="flex items-start gap-5">
                             {/* Large battery visual */}
                             <div className="relative flex-shrink-0" style={{ width: 88, height: 44 }}>
-                              {/* Battery body */}
                               <div className={`absolute inset-0 rounded-lg border-2 overflow-hidden ${
-                                isCharging ? "border-green-400/60" : battPct > 20 ? "border-yellow-400/40" : "border-red-400/50"
+                                isCharging ? "border-green-400/60 shadow-[0_0_8px_rgba(74,222,128,0.15)]" : battPct > 20 ? "border-yellow-400/40" : "border-red-400/50"
                               }`}>
-                                {/* Fill level */}
                                 <div
                                   className={`absolute bottom-0 left-0 top-0 transition-all duration-1000 ${
                                     isCharging
@@ -828,19 +850,16 @@ export default function DashboardPage() {
                                   }`}
                                   style={{ width: `${battPct}%` }}
                                 >
-                                  {/* Animated wave overlay when charging */}
                                   {isCharging && (
                                     <div className="absolute inset-0 overflow-hidden">
-                                      <div className="animate-battery-wave absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                                      <div className="animate-battery-wave absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent" />
                                     </div>
                                   )}
                                 </div>
                               </div>
-                              {/* Battery cap */}
                               <div className={`absolute right-[-6px] top-[12px] h-[20px] w-[4px] rounded-r-sm ${
                                 isCharging ? "bg-green-400/50" : battPct > 20 ? "bg-yellow-400/30" : "bg-red-400/40"
                               }`} />
-                              {/* Percentage text centered */}
                               <div className="absolute inset-0 flex items-center justify-center">
                                 <span className={`text-sm font-bold tabular-nums ${
                                   isCharging ? "text-green-300 animate-battery-pulse" : battPct > 20 ? "text-yellow-300" : "text-red-300"
@@ -848,21 +867,29 @@ export default function DashboardPage() {
                                   {isNaN(battery) ? "—" : `${battery}%`}
                                 </span>
                               </div>
-                              {/* Charging bolt icon */}
                               {isCharging && (
                                 <div className="absolute -right-2 -top-2">
                                   <Zap className="h-4 w-4 text-green-400 animate-pulse drop-shadow-[0_0_4px_rgba(74,222,128,0.6)]" />
                                 </div>
                               )}
+                              {/* Charge limit marker */}
+                              {!isNaN(limitPct) && (
+                                <div
+                                  className="absolute top-0 bottom-0 w-px border-l border-dashed border-white/30"
+                                  style={{ left: `${Math.min(100, limitPct)}%` }}
+                                  title={`Charge limit: ${limitPct}%`}
+                                />
+                              )}
                             </div>
 
-                            {/* Status info */}
-                            <div className="flex-1 space-y-1.5">
-                              <div className="flex items-center gap-2">
+                            {/* Status + stats */}
+                            <div className="flex-1 min-w-0">
+                              {/* Status badge */}
+                              <div className="mb-2 flex flex-wrap items-center gap-2">
                                 {isCharging ? (
-                                  <span className="flex items-center gap-1.5 rounded-full bg-green-500/15 px-2.5 py-1 text-xs font-semibold text-green-400 ring-1 ring-green-400/20">
-                                    <BatteryCharging className="h-3.5 w-3.5 animate-pulse" />
-                                    Charging — {powerKw} kW
+                                  <span className="flex items-center gap-1.5 rounded-full bg-green-500/15 px-2.5 py-1 text-xs font-semibold text-green-400 ring-1 ring-green-400/20 animate-ev-glow">
+                                    <BatteryCharging className="h-3.5 w-3.5 animate-ev-charge-icon" />
+                                    {powerKw} kW
                                   </span>
                                 ) : (
                                   <span className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${
@@ -876,14 +903,56 @@ export default function DashboardPage() {
                                     {statusLabel}
                                   </span>
                                 )}
-                              </div>
-                              <div className="flex items-center gap-3">
                                 {addedKwh > 0 && (
-                                  <span className="text-xs tabular-nums text-white/50">
-                                    +{addedKwh.toFixed(1)} kWh added
-                                  </span>
+                                  <span className="text-xs tabular-nums text-white/50">+{addedKwh.toFixed(1)} kWh</span>
                                 )}
                               </div>
+
+                              {/* Range + Phantom Drain stats */}
+                              <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                                {!isNaN(estKm) && (
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-xs text-white/45">Est. range</span>
+                                    <span className="text-xs font-semibold tabular-nums text-white/80">{estKm.toFixed(0)} km</span>
+                                  </div>
+                                )}
+                                {!isNaN(ratedKm) && (
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-xs text-white/45">Rated</span>
+                                    <span className="text-xs font-semibold tabular-nums text-white/80">{ratedKm.toFixed(0)} km</span>
+                                  </div>
+                                )}
+                                {!isNaN(phantomDrain) && (
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-xs text-white/45">Phantom drain</span>
+                                    <span className={`text-xs font-semibold tabular-nums ${
+                                      phantomDrain > 20 ? "text-red-300" : phantomDrain > 10 ? "text-yellow-300" : "text-white/60"
+                                    }`}>{phantomDrain.toFixed(0)} km</span>
+                                  </div>
+                                )}
+                                {!isNaN(idealKm) && (
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-xs text-white/45">Ideal</span>
+                                    <span className="text-xs tabular-nums text-white/55">{idealKm.toFixed(0)} km</span>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Temperature row */}
+                              {(!isNaN(insideC) || !isNaN(outsideC)) && (
+                                <div className="mt-2 flex items-center gap-3 text-xs text-white/45">
+                                  {!isNaN(insideC) && (
+                                    <span className="flex items-center gap-1">
+                                      <Thermometer className="h-3 w-3" /> {insideC.toFixed(0)}°C inside
+                                    </span>
+                                  )}
+                                  {!isNaN(outsideC) && (
+                                    <span className="flex items-center gap-1">
+                                      <ThermometerSnowflake className="h-3 w-3" /> {outsideC.toFixed(0)}°C outside
+                                    </span>
+                                  )}
+                                </div>
+                              )}
                             </div>
                           </div>
                         </div>
