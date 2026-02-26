@@ -206,6 +206,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [immichQueues, setImmichQueues] = useState<ImmichQueue[]>([]);
   const [immichLoading, setImmichLoading] = useState(true);
+  const [debugInfo, setDebugInfo] = useState("init");
 
   // Keep a stable ref so the effect never re-runs
   const updateRef = useRef(updateSession);
@@ -232,17 +233,17 @@ export default function DashboardPage() {
     async function fetchStates() {
       try {
         const res = await fetch("/api/ha/states");
-        console.log("[HA] fetch status:", res.status, res.ok);
+        setDebugInfo(prev => prev + ` | HA:${res.status}`);
         if (res.ok) {
           const all: HAState[] = await res.json();
-          console.log("[HA] entities:", all.length, "lights on:", all.filter(e => e.entity_id?.startsWith("light.") && e.state === "on").map(e => e.entity_id));
+          setDebugInfo(prev => prev + `(${all.length})`);
           setHaStates(all);
         } else {
           const text = await res.text();
-          console.error("[HA] non-ok response:", text.slice(0, 200));
+          setDebugInfo(prev => prev + ` HAerr:${text.slice(0, 80)}`);
         }
       } catch (err) {
-        console.error("[HA] fetch error:", err);
+        setDebugInfo(prev => prev + ` HAexc:${err}`);
       } finally {
         setLoading(false);
       }
@@ -257,17 +258,17 @@ export default function DashboardPage() {
     async function fetchImmichJobs() {
       try {
         const res = await fetch("/api/immich/jobs");
-        console.log("[Immich] fetch status:", res.status, res.ok);
+        setDebugInfo(prev => prev + ` | Im:${res.status}`);
         if (res.ok) {
           const data = await res.json();
-          console.log("[Immich] queues:", JSON.stringify(data.queues));
+          setDebugInfo(prev => prev + `(${data.queues?.length ?? 0}q)`);
           setImmichQueues(data.queues ?? []);
         } else {
           const text = await res.text();
-          console.error("[Immich] non-ok response:", text.slice(0, 200));
+          setDebugInfo(prev => prev + ` Imerr:${text.slice(0, 80)}`);
         }
       } catch (err) {
-        console.error("[Immich] fetch error:", err);
+        setDebugInfo(prev => prev + ` Imexc:${err}`);
       } finally {
         setImmichLoading(false);
       }
@@ -302,10 +303,11 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen">
       {/* DEBUG: remove after fixing */}
-      <div className="fixed bottom-2 left-2 z-50 rounded bg-black/80 px-3 py-1 text-[10px] text-green-400 font-mono">
-        HA: {haStates.length} entities, {onCount} on | Immich: {immichQueues.length} queues
+      <div className="fixed bottom-2 left-2 z-50 max-w-[90vw] overflow-auto rounded bg-black/90 px-3 py-1.5 text-[10px] text-green-400 font-mono leading-relaxed">
+        <div>HA: {haStates.length} entities, {onCount} on | Immich: {immichQueues.length} queues
         {immichQueues.length > 0 && ` (${immichQueues[0]?.name}: ${immichQueues[0]?.pending})`}
-        {loading && " [loading…]"}
+        {loading && " [loading…]"}</div>
+        <div className="text-yellow-400">{debugInfo}</div>
       </div>
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         {/* ——— Welcome Banner ——— */}
