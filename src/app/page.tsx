@@ -15,7 +15,6 @@ import {
   Container,
   RefreshCw,
   ChevronRight,
-  ChevronDown,
   Tv,
   Image as ImageIcon,
   Shield,
@@ -595,50 +594,36 @@ export default function DashboardPage() {
                   {adminPanelItems.map((item) => {
                     const Icon = item.icon;
 
-                    /* Items with sub-links get a hover dropdown */
+                    /* Split button for items with children (e.g. Pi-hole) */
                     if (item.children) {
                       return (
                         <div
                           key={item.name}
-                          className="group/dd relative flex items-center gap-3 p-3.5 transition-colors hover:bg-white/[0.06] cursor-pointer"
+                          className="grid grid-cols-2 divide-x divide-white/[0.06]"
                         >
-                          <div
-                            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${item.iconBg}`}
-                          >
-                            <Icon className={`h-4 w-4 ${item.iconColor}`} />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="text-sm font-medium text-white">
-                              {item.name}
-                            </p>
-                            <p className="truncate text-[11px] text-white/40">
-                              {item.description}
-                            </p>
-                          </div>
-                          <ChevronDown className="h-4 w-4 text-white/30 transition-transform group-hover/dd:rotate-180" />
-
-                          {/* Hover dropdown */}
-                          <div className="pointer-events-none absolute left-0 right-0 top-full z-50 opacity-0 transition-all group-hover/dd:pointer-events-auto group-hover/dd:opacity-100">
-                            <div className="rounded-b-2xl border border-t-0 border-white/[0.10] bg-white/[0.10] backdrop-blur-xl">
-                              {item.children.map((child) => (
-                                <a
-                                  key={child.name}
-                                  href={child.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="flex items-center gap-3 px-3.5 py-2.5 transition-colors hover:bg-white/[0.08]"
-                                >
-                                  <div className="h-4 w-4" />{/* spacer for icon alignment */}
-                                  <span className="text-sm text-white/80 hover:text-white">
-                                    {child.name}
-                                  </span>
-                                  <span className="ml-auto truncate text-[10px] text-white/30">
-                                    {child.url.replace(/^https?:\/\//, "").replace(/\/admin$/, "")}
-                                  </span>
-                                </a>
-                              ))}
-                            </div>
-                          </div>
+                          {item.children.map((child) => (
+                            <a
+                              key={child.name}
+                              href={child.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-3 p-3.5 transition-colors hover:bg-white/[0.06]"
+                            >
+                              <div
+                                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${item.iconBg}`}
+                              >
+                                <Icon className={`h-4 w-4 ${item.iconColor}`} />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-sm font-medium text-white">
+                                  {child.name}
+                                </p>
+                                <p className="truncate text-[11px] text-white/40">
+                                  {child.url.replace(/^https?:\/\//, "").replace(/\/admin$/, "")}
+                                </p>
+                              </div>
+                            </a>
+                          ))}
                         </div>
                       );
                     }
