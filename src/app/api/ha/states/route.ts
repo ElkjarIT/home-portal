@@ -3,8 +3,24 @@ import { auth } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
+// Only return the entities the dashboard needs (keeps response small for proxy)
+const WANTED_ENTITIES = new Set([
+  "light.stue",
+  "light.kokken",
+  "light.spisestue",
+  "light.sovevaerelse",
+  "light.entre",
+  "light.bryggers",
+  "light.thor",
+  "light.freja",
+  "light.walk_in",
+  "light.krybekaelder",
+  "light.udendors",
+  "light.trappe",
+  "media_player.stuen_tv",
+]);
+
 export const GET = auth(async function GET(req) {
-  console.log("[HA] GET /api/ha/states — auth:", !!req.auth);
   if (!req.auth) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -35,11 +51,13 @@ export const GET = auth(async function GET(req) {
       );
     }
 
-    const states = await res.json();
-    console.log(`[HA] Fetched ${Array.isArray(states) ? states.length : 0} entities`);
-    return NextResponse.json(states);
-  } catch (e) {
-    console.error("[HA] Error:", e);
+    const all = await res.json();
+    // Filter to only the entities we need — reduces response from ~430KB to <5KB
+    const filtered = Array.isArray(all)
+      ? all.filter((e: { entity_id: string }) => WANTED_ENTITIES.has(e.entity_id))
+      : [];
+    return NextResponse.json(filtered);
+  } catch {
     return NextResponse.json(
       { error: "Cannot reach Home Assistant" },
       { status: 502 }

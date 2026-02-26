@@ -206,7 +206,6 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [immichQueues, setImmichQueues] = useState<ImmichQueue[]>([]);
   const [immichLoading, setImmichLoading] = useState(true);
-  const [debugInfo, setDebugInfo] = useState("init");
 
   // Keep a stable ref so the effect never re-runs
   const updateRef = useRef(updateSession);
@@ -233,17 +232,11 @@ export default function DashboardPage() {
     async function fetchStates() {
       try {
         const res = await fetch("/api/ha/states");
-        setDebugInfo(prev => prev + ` | HA:${res.status}`);
         if (res.ok) {
-          const all: HAState[] = await res.json();
-          setDebugInfo(prev => prev + `(${all.length})`);
-          setHaStates(all);
-        } else {
-          const text = await res.text();
-          setDebugInfo(prev => prev + ` HAerr:${text.slice(0, 80)}`);
+          setHaStates(await res.json());
         }
-      } catch (err) {
-        setDebugInfo(prev => prev + ` HAexc:${err}`);
+      } catch {
+        // ignore
       } finally {
         setLoading(false);
       }
@@ -258,17 +251,12 @@ export default function DashboardPage() {
     async function fetchImmichJobs() {
       try {
         const res = await fetch("/api/immich/jobs");
-        setDebugInfo(prev => prev + ` | Im:${res.status}`);
         if (res.ok) {
           const data = await res.json();
-          setDebugInfo(prev => prev + `(${data.queues?.length ?? 0}q)`);
           setImmichQueues(data.queues ?? []);
-        } else {
-          const text = await res.text();
-          setDebugInfo(prev => prev + ` Imerr:${text.slice(0, 80)}`);
         }
-      } catch (err) {
-        setDebugInfo(prev => prev + ` Imexc:${err}`);
+      } catch {
+        // ignore
       } finally {
         setImmichLoading(false);
       }
@@ -302,13 +290,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen">
-      {/* DEBUG: remove after fixing */}
-      <div className="fixed bottom-2 left-2 z-50 max-w-[90vw] overflow-auto rounded bg-black/90 px-3 py-1.5 text-[10px] text-green-400 font-mono leading-relaxed">
-        <div>HA: {haStates.length} entities, {onCount} on | Immich: {immichQueues.length} queues
-        {immichQueues.length > 0 && ` (${immichQueues[0]?.name}: ${immichQueues[0]?.pending})`}
-        {loading && " [loading…]"}</div>
-        <div className="text-yellow-400">{debugInfo}</div>
-      </div>
+
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         {/* ——— Welcome Banner ——— */}
         <GlassCard className="mb-6 p-5">
