@@ -460,7 +460,7 @@ export default function DashboardPage() {
                       {loading ? "Loading..." : `${onCount} of ${ROOM_LIGHTS.length} on`}
                     </span>
                   </div>
-                  <div className="mt-3 flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1">
+                  <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1.5 sm:grid-cols-3">
                     {ROOM_LIGHTS.map((room) => {
                       const state = lights.find(
                         (l) => l.entity_id === room.entity_id
@@ -471,24 +471,26 @@ export default function DashboardPage() {
                       return (
                         <div
                           key={room.entity_id}
-                          className={`flex shrink-0 flex-col items-center gap-1 ${
-                            isUnavailable && !loading ? "opacity-30" : ""
+                          className={`flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors ${
+                            isOn
+                              ? "bg-amber-400/10"
+                              : isUnavailable && !loading
+                                ? "opacity-30"
+                                : ""
                           }`}
-                          title={`${room.name}${isOn ? " — On" : " — Off"}`}
                         >
-                          <div
-                            className={`flex h-8 w-8 items-center justify-center rounded-full transition-colors ${
-                              isOn
-                                ? "bg-amber-400/20"
-                                : "bg-white/5"
+                          {isOn ? (
+                            <Lightbulb className="h-3.5 w-3.5 shrink-0 text-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.5)]" />
+                          ) : (
+                            <LightbulbOff className="h-3.5 w-3.5 shrink-0 text-white/20" />
+                          )}
+                          <span
+                            className={`text-xs font-medium truncate ${
+                              isOn ? "text-amber-200" : "text-white/40"
                             }`}
                           >
-                            {isOn ? (
-                              <Lightbulb className="h-4 w-4 text-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.5)]" />
-                            ) : (
-                              <LightbulbOff className="h-4 w-4 text-white/20" />
-                            )}
-                          </div>
+                            {room.name}
+                          </span>
                         </div>
                       );
                     })}
