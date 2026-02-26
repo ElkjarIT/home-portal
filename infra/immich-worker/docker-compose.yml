@@ -46,8 +46,8 @@ services:
       UPLOAD_LOCATION: /opt/immich/uploads
       IMMICH_MEDIA_LOCATION: /opt/immich/uploads
 
-      # ── ML server — use the primary server's instance over the network ────
-      IMMICH_MACHINE_LEARNING_URL: http://${DB_HOSTNAME}:3003
+      # ── ML server — local instance on the same Docker network ──────────────
+      IMMICH_MACHINE_LEARNING_URL: http://immich-machine-learning:3003
 
       # ── Database (primary server) ─────────────────────────────────────────
       DB_HOSTNAME: ${DB_HOSTNAME}
@@ -66,6 +66,17 @@ services:
       # Docker-native CIFS volume mounting the full /data/immich root at /opt/immich.
       - immich-data:/opt/immich
 
+  immich-machine-learning:
+    image: ghcr.io/immich-app/immich-machine-learning:${IMMICH_VERSION:-release}
+    container_name: immich_machine_learning
+    restart: unless-stopped
+    volumes:
+      - model-cache:/cache
+    environment:
+      MACHINE_LEARNING_WORKERS: 1
+      TZ: ${TZ:-Europe/Copenhagen}
+
 volumes:
   immich-data:
     external: true   # Created separately via docker volume create (see header)
+  model-cache:
