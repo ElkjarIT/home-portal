@@ -24,6 +24,7 @@ import {
   Users,
   Cloud,
   Github,
+  Loader2,
 } from "lucide-react";
 
 // ——— Room lights from HA ———
@@ -44,7 +45,7 @@ const ROOM_LIGHTS = [
 ];
 
 // HA entity for Apple TV
-const APPLE_TV_ENTITY = "media_player.apple_tv";
+const APPLE_TV_ENTITY = "media_player.stuen_tv";
 
 // ——— External service cards ———
 
@@ -146,6 +147,16 @@ interface HAState {
   };
 }
 
+interface ImmichQueue {
+  name: string;
+  active: number;
+  waiting: number;
+  failed: number;
+  isPaused: boolean;
+  isActive: boolean;
+  pending: number;
+}
+
 // ——— Helper Components ———
 
 function GlassCard({
@@ -193,6 +204,8 @@ export default function DashboardPage() {
   const { data: session, update: updateSession } = useSession();
   const [haStates, setHaStates] = useState<HAState[]>([]);
   const [loading, setLoading] = useState(true);
+  const [immichQueues, setImmichQueues] = useState<ImmichQueue[]>([]);
+  const [immichLoading, setImmichLoading] = useState(true);
 
   // Keep a stable ref so the effect never re-runs
   const updateRef = useRef(updateSession);
@@ -231,6 +244,26 @@ export default function DashboardPage() {
     }
     fetchStates();
     const iv = setInterval(fetchStates, 15_000);
+    return () => clearInterval(iv);
+  }, []);
+
+  // Fetch Immich job queues
+  useEffect(() => {
+    async function fetchImmichJobs() {
+      try {
+        const res = await fetch("/api/immich/jobs");
+        if (res.ok) {
+          const data = await res.json();
+          setImmichQueues(data.queues ?? []);
+        }
+      } catch {
+        /* ignore */
+      } finally {
+        setImmichLoading(false);
+      }
+    }
+    fetchImmichJobs();
+    const iv = setInterval(fetchImmichJobs, 30_000);
     return () => clearInterval(iv);
   }, []);
 
@@ -341,7 +374,7 @@ export default function DashboardPage() {
                 Smart Home Devices
               </SectionLabel>
               <div className="space-y-3">
-                {/* Immich + light entities row */}
+                {/* Immich + job queues row */}
                 <a
                   href="https://immich.aser.dk"
                   target="_blank"
@@ -356,43 +389,103 @@ export default function DashboardPage() {
                       <span className="flex-1 text-xs text-white/30">
                         Photo & video library
                       </span>
+                      <ChevronRight className="h-4 w-4 shrink-0 text-white/30" />
                     </div>
-                    <div className="mt-3 flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1">
-                      {ROOM_LIGHTS.map((room) => {
-                        const state = lights.find(
-                          (l) => l.entity_id === room.entity_id
-                        );
-                        const isOn = state?.state === "on";
-                        const isUnavailable =
-                          !state || state.state === "unavailable";
-                        return (
+                    {/* Top 3 job queues */}
+                    <div className="mt-3 space-y-1.5">
+                      {immichLoading ? (
+                        <div className="flex items-center gap-2 text-xs text-white/30">
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          Loading queues…
+                        </div>
+                      ) : immichQueues.length === 0 ? (
+                        <p className="text-xs text-white/30">All queues idle</p>
+                      ) : (
+                        immichQueues.map((q) => (
                           <div
-                            key={room.entity_id}
-                            className={`flex shrink-0 flex-col items-center gap-1 ${
-                              isUnavailable && !loading ? "opacity-30" : ""
-                            }`}
-                            title={`${room.name}${isOn ? " — On" : " — Off"}`}
+                            key={q.name}
+                            className="flex items-center gap-2 text-xs"
                           >
-                            <div
-                              className={`flex h-8 w-8 items-center justify-center rounded-full transition-colors ${
-                                isOn
-                                  ? "bg-amber-400/20"
-                                  : "bg-white/5"
-                              }`}
-                            >
-                              {isOn ? (
-                                <Lightbulb className="h-4 w-4 text-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.5)]" />
-                              ) : (
-                                <LightbulbOff className="h-4 w-4 text-white/20" />
-                              )}
-                            </div>
+                            <span className="w-[6.5rem] shrink-0 truncate font-medium text-white/60">
+                              {q.name}
+                            </span>
+                            {q.pending > 0 ? (
+                              <>
+                                <div className="h-1 flex-1 overflow-hidden rounded-full bg-white/10">
+                                  <div
+                                    className="h-full rounded-full bg-blue-400/60 transition-all"
+                                    style={{
+                                      width: `${Math.min(
+                                        100,
+                                        (q.active / Math.max(q.pending, 1)) * 100
+                                      )}%`,
+                                    }}
+                                  />
+                                </div>
+                                <span className="shrink-0 tabular-nums text-white/40">
+                                  {q.pending.toLocaleString()}
+                                </span>
+                              </>
+                            ) : (
+                              <span className="text-white/25">idle</span>
+                            )}
+                            {q.failed > 0 && (
+                              <span className="shrink-0 text-red-400/70">
+                                {q.failed} err
+                              </span>
+                            )}
                           </div>
-                        );
-                      })}
-                      <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-white/30" />
+                        ))
+                      )}
                     </div>
                   </GlassCard>
                 </a>
+
+                {/* Light entities row */}
+                <GlassCard className="p-4">
+                  <div className="flex items-center gap-3">
+                    <Lightbulb className="h-4 w-4 text-amber-400" />
+                    <span className="text-sm font-medium text-white">
+                      Room Lights
+                    </span>
+                    <span className="flex-1 text-xs text-white/30">
+                      {loading ? "Loading..." : `${onCount} of ${ROOM_LIGHTS.length} on`}
+                    </span>
+                  </div>
+                  <div className="mt-3 flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1">
+                    {ROOM_LIGHTS.map((room) => {
+                      const state = lights.find(
+                        (l) => l.entity_id === room.entity_id
+                      );
+                      const isOn = state?.state === "on";
+                      const isUnavailable =
+                        !state || state.state === "unavailable";
+                      return (
+                        <div
+                          key={room.entity_id}
+                          className={`flex shrink-0 flex-col items-center gap-1 ${
+                            isUnavailable && !loading ? "opacity-30" : ""
+                          }`}
+                          title={`${room.name}${isOn ? " — On" : " — Off"}`}
+                        >
+                          <div
+                            className={`flex h-8 w-8 items-center justify-center rounded-full transition-colors ${
+                              isOn
+                                ? "bg-amber-400/20"
+                                : "bg-white/5"
+                            }`}
+                          >
+                            {isOn ? (
+                              <Lightbulb className="h-4 w-4 text-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.5)]" />
+                            ) : (
+                              <LightbulbOff className="h-4 w-4 text-white/20" />
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </GlassCard>
 
                 {/* Apple TV row */}
                 <GlassCard className="flex items-center gap-3 p-4">

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+
 export const GET = auth(async function GET(req) {
   if (!req.auth) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -22,7 +24,7 @@ export const GET = auth(async function GET(req) {
         Authorization: `Bearer ${hassToken}`,
         "Content-Type": "application/json",
       },
-      next: { revalidate: 10 },
+      cache: "no-store",
     });
 
     if (!res.ok) {
