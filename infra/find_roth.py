@@ -7,14 +7,14 @@ req = urllib.request.Request(url, headers={"Authorization": f"Bearer {token}"})
 with urllib.request.urlopen(req) as resp:
     states = json.load(resp)
 
-# Find all Bilskirner / Tessie entities
-print("=== BILSKIRNER / TESSIE ENTITIES ===")
+# Show ALL Bilskirner entities
 for s in states:
     eid = s["entity_id"]
-    name = s["attributes"].get("friendly_name", "")
-    search = (eid + name).lower()
-    if "bilskirner" in search or "tessie" in search:
+    if "bilskirner" in eid:
         state = s["state"]
         unit = s["attributes"].get("unit_of_measurement", "")
-        device_class = s["attributes"].get("device_class", "")
-        print(f"{eid} | {name} | {state} {unit} | class={device_class}")
+        attrs = s.get("attributes", {})
+        extra = ""
+        if "last_changed" in s:
+            extra = f"  changed={s['last_changed']}"
+        print(f"{eid:60s} = {str(state):>15s} {unit:>5s}{extra}")

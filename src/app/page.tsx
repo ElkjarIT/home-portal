@@ -27,7 +27,6 @@ import {
   Film,
   Camera,
   ListTodo,
-  Gauge,
   ThermometerSnowflake,
 } from "lucide-react";
 
@@ -814,7 +813,6 @@ export default function DashboardPage() {
                       const ratedKm = rangeRated ? parseFloat(rangeRated.state) : NaN;
                       const estKm = rangeEst ? parseFloat(rangeEst.state) : NaN;
                       const idealKm = rangeIdeal ? parseFloat(rangeIdeal.state) : NaN;
-                      const phantomDrain = !isNaN(ratedKm) && !isNaN(estKm) ? ratedKm - estKm : NaN;
                       const insideC = insideTemp ? parseFloat(insideTemp.state) : NaN;
                       const outsideC = outsideTemp ? parseFloat(outsideTemp.state) : NaN;
                       const limitPct = chargeLimit ? parseInt(chargeLimit.state, 10) : NaN;
@@ -908,31 +906,23 @@ export default function DashboardPage() {
                                 )}
                               </div>
 
-                              {/* Range + Phantom Drain stats */}
-                              <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                              {/* Range stats */}
+                              <div className="grid grid-cols-3 gap-x-3 gap-y-1">
                                 {!isNaN(estKm) && (
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-xs text-white/45">Est. range</span>
+                                  <div className="flex flex-col">
+                                    <span className="text-[10px] text-white/40">Estimated</span>
                                     <span className="text-xs font-semibold tabular-nums text-white/80">{estKm.toFixed(0)} km</span>
                                   </div>
                                 )}
                                 {!isNaN(ratedKm) && (
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-xs text-white/45">Rated</span>
+                                  <div className="flex flex-col">
+                                    <span className="text-[10px] text-white/40">Rated</span>
                                     <span className="text-xs font-semibold tabular-nums text-white/80">{ratedKm.toFixed(0)} km</span>
                                   </div>
                                 )}
-                                {!isNaN(phantomDrain) && (
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-xs text-white/45">Phantom drain</span>
-                                    <span className={`text-xs font-semibold tabular-nums ${
-                                      phantomDrain > 20 ? "text-red-300" : phantomDrain > 10 ? "text-yellow-300" : "text-white/60"
-                                    }`}>{phantomDrain.toFixed(0)} km</span>
-                                  </div>
-                                )}
                                 {!isNaN(idealKm) && (
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-xs text-white/45">Ideal</span>
+                                  <div className="flex flex-col">
+                                    <span className="text-[10px] text-white/40">Ideal</span>
                                     <span className="text-xs tabular-nums text-white/55">{idealKm.toFixed(0)} km</span>
                                   </div>
                                 )}
