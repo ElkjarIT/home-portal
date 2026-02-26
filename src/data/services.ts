@@ -34,6 +34,14 @@ export const services: Service[] = [
     category: "media",
     color: "blue",
   },
+  {
+    name: "Plex",
+    description: "Video server",
+    url: "https://plex.aser.dk",
+    icon: "Film",
+    category: "media",
+    color: "amber",
+  },
 
   // Infrastructure — general
   {

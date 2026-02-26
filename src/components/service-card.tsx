@@ -6,6 +6,7 @@ import {
 import {
   ExternalLink,
   Image,
+  Film,
   Home,
   Server,
   Wifi,
@@ -25,6 +26,7 @@ import type { Service, ServiceColor } from "@/data/services";
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Image,
+  Film,
   Home,
   Server,
   Wifi,
