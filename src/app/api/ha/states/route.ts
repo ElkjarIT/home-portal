@@ -17,6 +17,16 @@ const WANTED_ENTITIES = new Set([
   "light.walk_in",
   "light.udendors",
   "light.trappe",
+  // Shelly dimmers
+  "light.trappe_ceiling",
+  "light.entre_ceiling",
+  "light.koekken_window",
+  // Climate — Roth Touchline floor heating
+  "climate.spisestue_k_lkken",
+  "climate.stue",
+  "climate.gang",
+  "climate.freja",
+  "climate.thor",
   // Media
   "media_player.stuen_tv",
   // Printer toner

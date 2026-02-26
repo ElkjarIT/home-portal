@@ -22,6 +22,7 @@ import {
   BarChart3,
   Plug,
   BatteryCharging,
+  Thermometer,
 } from "lucide-react";
 
 // ——— Room lights from HA ———
@@ -38,6 +39,20 @@ const ROOM_LIGHTS = [
   { entity_id: "light.walk_in", name: "Walk-in" },
   { entity_id: "light.udendors", name: "Udendørs" },
   { entity_id: "light.trappe", name: "Trappe" },
+  // Shelly dimmers
+  { entity_id: "light.trappe_ceiling", name: "Trappe Loftlys" },
+  { entity_id: "light.entre_ceiling", name: "Entré Loftlys" },
+  { entity_id: "light.koekken_window", name: "Køkken Vindue" },
+];
+
+// ——— Roth Touchline floor heating zones ———
+
+const CLIMATE_ROOMS = [
+  { entity_id: "climate.spisestue_k_lkken", name: "Spisestue / Køkken" },
+  { entity_id: "climate.stue", name: "Stue" },
+  { entity_id: "climate.gang", name: "Gang" },
+  { entity_id: "climate.freja", name: "Freja" },
+  { entity_id: "climate.thor", name: "Thor" },
 ];
 
 // HA entity for Apple TV
@@ -453,6 +468,61 @@ export default function DashboardPage() {
                   </div>
                 </GlassCard>
 
+                {/* Climate / Room Temperatures */}
+                <GlassCard className="p-4">
+                  <div className="flex items-center gap-3">
+                    <Thermometer className="h-4 w-4 text-rose-400" />
+                    <span className="text-sm font-medium text-white">
+                      Room Climate
+                    </span>
+                    <span className="flex-1 text-xs text-white/45">
+                      {loading ? "Loading..." : "Roth Touchline"}
+                    </span>
+                  </div>
+                  <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1.5 sm:grid-cols-3">
+                    {CLIMATE_ROOMS.map((room) => {
+                      const entity = haStates.find(
+                        (e) => e.entity_id === room.entity_id
+                      );
+                      const current = entity?.attributes?.current_temperature as number | undefined;
+                      const target = entity?.attributes?.temperature as number | undefined;
+                      const isUnavailable = !entity || entity.state === "unavailable";
+                      const isAboveTarget = current != null && target != null && current > target;
+                      const isBelowTarget = current != null && target != null && current < target - 0.5;
+                      return (
+                        <div
+                          key={room.entity_id}
+                          className={`flex items-center justify-between rounded-lg px-2 py-1.5 transition-colors ${
+                            isUnavailable && !loading ? "opacity-30" : ""
+                          }`}
+                        >
+                          <span className="text-xs font-medium text-white/55 truncate">
+                            {room.name}
+                          </span>
+                          <div className="flex items-baseline gap-1">
+                            <span
+                              className={`text-xs font-semibold tabular-nums ${
+                                isBelowTarget
+                                  ? "text-blue-300"
+                                  : isAboveTarget
+                                    ? "text-rose-300"
+                                    : "text-white/80"
+                              }`}
+                            >
+                              {current != null ? `${current.toFixed(1)}°` : "—"}
+                            </span>
+                            {target != null && (
+                              <span className="text-xs tabular-nums text-white/35">
+                                / {target.toFixed(0)}°
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </GlassCard>
+
                 {/* Apple TV row */}
                 <GlassCard className="flex items-center gap-3 p-4">
                   <Tv className="h-4 w-4 text-slate-300" />
@@ -503,11 +573,11 @@ export default function DashboardPage() {
                       return (
                         <div className="mb-4">
                           <div className="flex items-baseline gap-2">
-                            <Zap className="h-4 w-4 text-yellow-400" />
-                            <span className="text-2xl font-bold tabular-nums text-white">
+                            <Zap className="h-4 w-4 text-green-400" />
+                            <span className="text-2xl font-bold tabular-nums text-green-400">
                               {isNaN(watts) ? "—" : watts.toLocaleString()}
                             </span>
-                            <span className="text-sm text-white/55">W</span>
+                            <span className="text-sm text-green-400/70">W</span>
                             <span className="ml-auto text-xs tabular-nums text-white/45">
                               Today: {energyTodayKwh.toFixed(1)} kWh
                             </span>
@@ -557,7 +627,7 @@ export default function DashboardPage() {
                                   {/* kWh value on top */}
                                   <span
                                     className={`text-xs font-semibold tabular-nums ${
-                                      isToday ? "text-yellow-300" : "text-white/60"
+                                      isToday ? "text-green-300" : "text-white/60"
                                     }`}
                                   >
                                     {d.kwh.toFixed(1)}
@@ -568,8 +638,8 @@ export default function DashboardPage() {
                                     <div
                                       className={`w-full rounded-md transition-all duration-500 ${
                                         isToday
-                                          ? "bg-gradient-to-t from-yellow-500/70 to-yellow-300/50 shadow-[0_0_12px_rgba(250,204,21,0.2)] ring-1 ring-yellow-400/30"
-                                          : "bg-white/[0.08] hover:bg-white/[0.12]"
+                                          ? "bg-gradient-to-t from-green-500/70 to-green-300/50 shadow-[0_0_12px_rgba(74,222,128,0.2)] ring-1 ring-green-400/30"
+                                          : "bg-gradient-to-t from-yellow-500/50 to-yellow-300/30"
                                       }`}
                                       style={{ height: `${Math.max(6, pct)}%` }}
                                     />
@@ -578,7 +648,7 @@ export default function DashboardPage() {
                                   {/* Day label */}
                                   <span
                                     className={`text-xs font-medium ${
-                                      isToday ? "text-yellow-300" : "text-white/45"
+                                      isToday ? "text-green-300" : "text-white/45"
                                     }`}
                                   >
                                     {isToday ? "I dag" : dayLabel}
@@ -634,7 +704,7 @@ export default function DashboardPage() {
                           return (
                             <div key={dev.entity_id} className="flex items-center justify-between rounded-lg px-2 py-1">
                               <span className={`text-xs truncate ${isActive ? "text-white/80" : "text-white/45"}`}>{dev.name}</span>
-                              <span className={`text-xs tabular-nums ${isActive ? "text-yellow-300" : "text-white/40"}`}>
+                              <span className={`text-xs tabular-nums ${isActive ? "text-green-300" : "text-white/40"}`}>
                                 {isNaN(w) ? "—" : `${Math.round(w)}W`}
                               </span>
                             </div>
