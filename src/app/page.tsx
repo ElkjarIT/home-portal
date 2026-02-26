@@ -666,7 +666,8 @@ export default function DashboardPage() {
               </div>
             </section>
 
-            {/* — PRINTER TONER — */}
+            {/* — PRINTER + INFRASTRUCTURE (side by side) — */}
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <section>
               <SectionLabel icon={Printer} iconColor="text-orange-400">
                 Canon Printer
@@ -740,7 +741,6 @@ export default function DashboardPage() {
               </GlassCard>
             </section>
 
-            {/* — INFRASTRUCTURE STATUS — */}
             <section>
               <SectionLabel icon={Activity} iconColor="text-emerald-400">
                 Infrastructure
@@ -810,6 +810,7 @@ export default function DashboardPage() {
                 )}
               </GlassCard>
             </section>
+            </div>
 
             {/* — QUICK THEME (HA preview) — */}
             <section>
