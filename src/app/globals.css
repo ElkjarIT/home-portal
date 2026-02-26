@@ -133,3 +133,20 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* EV battery charging wave animation */
+@keyframes battery-wave {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+.animate-battery-wave {
+  animation: battery-wave 2s ease-in-out infinite;
+}
+
+@keyframes battery-pulse {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+.animate-battery-pulse {
+  animation: battery-pulse 2s ease-in-out infinite;
+}

@@ -728,33 +728,89 @@ export default function DashboardPage() {
                       const powerKw = chargerPower ? parseFloat(chargerPower.state) : 0;
                       const addedKwh = energyAdded ? parseFloat(energyAdded.state) : 0;
                       const battery = battLevel ? parseInt(battLevel.state, 10) : NaN;
+                      const battPct = isNaN(battery) ? 0 : Math.min(100, Math.max(0, battery));
+                      const battColor = isCharging ? "green" : battPct > 20 ? "yellow" : "red";
+                      const statusLabel = statusText === "disconnected" ? "Disconnected" : statusText === "stopped" ? "Stopped" : statusText === "complete" ? "Complete" : statusText.charAt(0).toUpperCase() + statusText.slice(1);
                       return (
-                        <div className="mt-3 border-t border-white/[0.06] pt-3">
-                          <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-white/50">
-                            <Car className="h-3 w-3" /> EV Charger — Bilskirner
+                        <div className="mt-4 rounded-xl border border-white/[0.08] bg-white/[0.04] p-4">
+                          <p className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-white/55">
+                            <Car className="h-3.5 w-3.5" /> EV Charger — Bilskirner
                           </p>
-                          <div className="flex items-center gap-3">
-                            {isCharging ? (
-                              <span className="flex items-center gap-1.5 rounded-full bg-green-500/15 px-2.5 py-1 text-xs font-medium text-green-400">
-                                <BatteryCharging className="h-3.5 w-3.5 animate-pulse" />
-                                Charging — {powerKw} kW
-                              </span>
-                            ) : (
-                              <span className="flex items-center gap-1.5 rounded-full bg-white/[0.05] px-2.5 py-1 text-xs text-white/55">
-                                <Circle className="h-2 w-2 fill-white/20 text-white/35" />
-                                {statusText === "disconnected" ? "Disconnected" : statusText === "stopped" ? "Stopped" : statusText === "complete" ? "Complete" : statusText.charAt(0).toUpperCase() + statusText.slice(1)}
-                              </span>
-                            )}
-                            {!isNaN(battery) && (
-                              <span className="text-xs tabular-nums text-white/55">
-                                Battery: {battery}%
-                              </span>
-                            )}
-                            {addedKwh > 0 && (
-                              <span className="text-xs tabular-nums text-white/45">
-                                +{addedKwh.toFixed(1)} kWh
-                              </span>
-                            )}
+                          <div className="flex items-center gap-5">
+                            {/* Large battery visual */}
+                            <div className="relative flex-shrink-0" style={{ width: 88, height: 44 }}>
+                              {/* Battery body */}
+                              <div className={`absolute inset-0 rounded-lg border-2 overflow-hidden ${
+                                isCharging ? "border-green-400/60" : battPct > 20 ? "border-yellow-400/40" : "border-red-400/50"
+                              }`}>
+                                {/* Fill level */}
+                                <div
+                                  className={`absolute bottom-0 left-0 top-0 transition-all duration-1000 ${
+                                    isCharging
+                                      ? "bg-gradient-to-r from-green-500/60 to-green-400/40"
+                                      : battPct > 20
+                                        ? "bg-gradient-to-r from-yellow-500/50 to-yellow-400/30"
+                                        : "bg-gradient-to-r from-red-500/60 to-red-400/40"
+                                  }`}
+                                  style={{ width: `${battPct}%` }}
+                                >
+                                  {/* Animated wave overlay when charging */}
+                                  {isCharging && (
+                                    <div className="absolute inset-0 overflow-hidden">
+                                      <div className="animate-battery-wave absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                              {/* Battery cap */}
+                              <div className={`absolute right-[-6px] top-[12px] h-[20px] w-[4px] rounded-r-sm ${
+                                isCharging ? "bg-green-400/50" : battPct > 20 ? "bg-yellow-400/30" : "bg-red-400/40"
+                              }`} />
+                              {/* Percentage text centered */}
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <span className={`text-sm font-bold tabular-nums ${
+                                  isCharging ? "text-green-300 animate-battery-pulse" : battPct > 20 ? "text-yellow-300" : "text-red-300"
+                                }`}>
+                                  {isNaN(battery) ? "—" : `${battery}%`}
+                                </span>
+                              </div>
+                              {/* Charging bolt icon */}
+                              {isCharging && (
+                                <div className="absolute -right-2 -top-2">
+                                  <Zap className="h-4 w-4 text-green-400 animate-pulse drop-shadow-[0_0_4px_rgba(74,222,128,0.6)]" />
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Status info */}
+                            <div className="flex-1 space-y-1.5">
+                              <div className="flex items-center gap-2">
+                                {isCharging ? (
+                                  <span className="flex items-center gap-1.5 rounded-full bg-green-500/15 px-2.5 py-1 text-xs font-semibold text-green-400 ring-1 ring-green-400/20">
+                                    <BatteryCharging className="h-3.5 w-3.5 animate-pulse" />
+                                    Charging — {powerKw} kW
+                                  </span>
+                                ) : (
+                                  <span className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${
+                                    statusText === "disconnected"
+                                      ? "bg-white/[0.05] text-white/45"
+                                      : "bg-yellow-500/10 text-yellow-300 ring-1 ring-yellow-400/15"
+                                  }`}>
+                                    <Circle className={`h-2 w-2 ${
+                                      statusText === "disconnected" ? "fill-white/20 text-white/30" : "fill-yellow-400/50 text-yellow-400/50"
+                                    }`} />
+                                    {statusLabel}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-3">
+                                {addedKwh > 0 && (
+                                  <span className="text-xs tabular-nums text-white/50">
+                                    +{addedKwh.toFixed(1)} kWh added
+                                  </span>
+                                )}
+                              </div>
+                            </div>
                           </div>
                         </div>
                       );
