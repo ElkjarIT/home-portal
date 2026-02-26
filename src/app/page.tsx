@@ -25,6 +25,10 @@ import {
   Cloud,
   Github,
   Loader2,
+  Printer,
+  Activity,
+  Circle,
+  Clock,
 } from "lucide-react";
 
 // ——— Room lights from HA ———
@@ -46,6 +50,29 @@ const ROOM_LIGHTS = [
 
 // HA entity for Apple TV
 const APPLE_TV_ENTITY = "media_player.stuen_tv";
+
+// Canon printer toner sensors
+const TONER_SENSORS = [
+  { entity_id: "sensor.cnmf633c_635c_canon_cartridge_045_black_toner", name: "Black", color: "#333" },
+  { entity_id: "sensor.cnmf633c_635c_canon_cartridge_045_cyan_toner", name: "Cyan", color: "#06b6d4" },
+  { entity_id: "sensor.cnmf633c_635c_canon_cartridge_045_magenta_to", name: "Magenta", color: "#d946ef" },
+  { entity_id: "sensor.cnmf633c_635c_canon_cartridge_045_yellow_ton", name: "Yellow", color: "#eab308" },
+];
+
+// Infrastructure devices to monitor
+const INFRA_DEVICES = [
+  { entity_id: "device_tracker.ha", name: "Home Assistant", uptimeEntity: null },
+  { entity_id: "device_tracker.pve_1", name: "Proxmox VE", uptimeEntity: null },
+  { entity_id: "device_tracker.valhalla", name: "Valhalla (Docker)", uptimeEntity: "sensor.valhalla_uptime" },
+  { entity_id: "device_tracker.nas01", name: "NAS01", uptimeEntity: null },
+  { entity_id: "device_tracker.immich01", name: "Immich Server", uptimeEntity: null },
+  { entity_id: "device_tracker.pihole_secondary", name: "Pi-hole Secondary", uptimeEntity: null },
+  { entity_id: "device_tracker.stuen", name: "Stuen AP (U7-Pro)", uptimeEntity: "sensor.stuen_uptime" },
+  { entity_id: "device_tracker.freja", name: "Kontor AP (AC-LR)", uptimeEntity: "sensor.freja_uptime" },
+  { entity_id: "device_tracker.garagen", name: "Garagen AP (AC-LR)", uptimeEntity: "sensor.garagen_uptime" },
+  { entity_id: "device_tracker.usw2", name: "USW1 (Switch)", uptimeEntity: "sensor.usw2_uptime" },
+  { entity_id: "device_tracker.cannon", name: "Canon Printer", uptimeEntity: null },
+];
 
 // ——— External service cards ———
 
@@ -637,6 +664,151 @@ export default function DashboardPage() {
                   );
                 })}
               </div>
+            </section>
+
+            {/* — PRINTER TONER — */}
+            <section>
+              <SectionLabel icon={Printer} iconColor="text-orange-400">
+                Canon Printer
+              </SectionLabel>
+              <GlassCard className="p-4">
+                {loading ? (
+                  <div className="flex items-center gap-2 text-xs text-white/30">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    Loading…
+                  </div>
+                ) : (
+                  <>
+                    {/* Printer connectivity */}
+                    {(() => {
+                      const tracker = haStates.find(
+                        (e) => e.entity_id === "device_tracker.cannon"
+                      );
+                      const isOnline = tracker?.state === "home";
+                      return (
+                        <div className="mb-4 flex items-center gap-2">
+                          <Circle
+                            className={`h-2.5 w-2.5 ${
+                              isOnline
+                                ? "fill-green-400 text-green-400"
+                                : "fill-red-400 text-red-400"
+                            }`}
+                          />
+                          <span className="text-xs font-medium text-white/60">
+                            {isOnline ? "Online" : "Offline"}
+                          </span>
+                        </div>
+                      );
+                    })()}
+
+                    {/* Toner bars */}
+                    <div className="space-y-3">
+                      {TONER_SENSORS.map((toner) => {
+                        const entity = haStates.find(
+                          (e) => e.entity_id === toner.entity_id
+                        );
+                        const level = entity
+                          ? parseInt(entity.state, 10)
+                          : NaN;
+                        const pct = isNaN(level) ? 0 : Math.min(100, Math.max(0, level));
+                        return (
+                          <div key={toner.entity_id}>
+                            <div className="mb-1 flex items-center justify-between text-xs">
+                              <span className="font-medium text-white/60">
+                                {toner.name}
+                              </span>
+                              <span className="tabular-nums text-white/40">
+                                {isNaN(level) ? "N/A" : `${level}%`}
+                              </span>
+                            </div>
+                            <div className="h-2 overflow-hidden rounded-full bg-white/10">
+                              <div
+                                className="h-full rounded-full transition-all"
+                                style={{
+                                  width: `${pct}%`,
+                                  backgroundColor: toner.color,
+                                  opacity: isNaN(level) ? 0.3 : 0.8,
+                                }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+              </GlassCard>
+            </section>
+
+            {/* — INFRASTRUCTURE STATUS — */}
+            <section>
+              <SectionLabel icon={Activity} iconColor="text-emerald-400">
+                Infrastructure
+              </SectionLabel>
+              <GlassCard className="divide-y divide-white/[0.06]">
+                {loading ? (
+                  <div className="flex items-center gap-2 p-4 text-xs text-white/30">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    Loading…
+                  </div>
+                ) : (
+                  INFRA_DEVICES.map((device) => {
+                    const tracker = haStates.find(
+                      (e) => e.entity_id === device.entity_id
+                    );
+                    const isOnline = tracker?.state === "home";
+                    const uptimeEntity = device.uptimeEntity
+                      ? haStates.find((e) => e.entity_id === device.uptimeEntity)
+                      : null;
+
+                    // Format uptime — HA returns an ISO timestamp for *_uptime sensors
+                    let uptimeStr = "";
+                    if (uptimeEntity && uptimeEntity.state !== "unavailable" && uptimeEntity.state !== "unknown") {
+                      const bootTime = new Date(uptimeEntity.state).getTime();
+                      if (!isNaN(bootTime)) {
+                        const diffMs = Date.now() - bootTime;
+                        const days = Math.floor(diffMs / 86_400_000);
+                        const hours = Math.floor((diffMs % 86_400_000) / 3_600_000);
+                        const mins = Math.floor((diffMs % 3_600_000) / 60_000);
+                        if (days > 0) uptimeStr = `${days}d ${hours}h`;
+                        else if (hours > 0) uptimeStr = `${hours}h ${mins}m`;
+                        else uptimeStr = `${mins}m`;
+                      }
+                    }
+
+                    return (
+                      <div
+                        key={device.entity_id}
+                        className="flex items-center gap-3 px-4 py-3"
+                      >
+                        <Circle
+                          className={`h-2.5 w-2.5 shrink-0 ${
+                            isOnline
+                              ? "fill-green-400 text-green-400"
+                              : "fill-red-400 text-red-400"
+                          }`}
+                        />
+                        <span className="min-w-0 flex-1 truncate text-sm font-medium text-white/70">
+                          {device.name}
+                        </span>
+                        {uptimeStr && (
+                          <span className="flex items-center gap-1 text-[11px] tabular-nums text-white/35">
+                            <Clock className="h-3 w-3" />
+                            {uptimeStr}
+                          </span>
+                        )}
+                        <span
+                          className={`text-[11px] font-medium ${
+                            isOnline ? "text-green-400/70" : "text-red-400/70"
+                          }`}
+                        >
+                          {isOnline ? "Online" : "Offline"}
+                        </span>
+                      </div>
+                    );
+                  })
+                )}
+              </GlassCard>
             </section>
 
             {/* — QUICK THEME (HA preview) — */}
