@@ -1,9 +1,24 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request: Request) {
   const results: Record<string, unknown> = { ts: new Date().toISOString() };
+
+  // Check auth status from cookies
+  const cookies = request.headers.get("cookie") ?? "";
+  results.hasCookie = cookies.includes("authjs.session-token");
+  results.cookieNames = cookies.split(";").map(c => c.trim().split("=")[0]).filter(Boolean);
+
+  // Try to get session via auth()
+  try {
+    const session = await auth();
+    results.hasSession = !!session;
+    results.sessionUser = session?.user?.name ?? null;
+  } catch (e) {
+    results.authError = String(e);
+  }
 
   // Test HA
   const hassUrl = process.env.HASS_URL;
