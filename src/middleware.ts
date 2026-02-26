@@ -11,7 +11,8 @@ export default auth((req) => {
     pathname.startsWith("/setup") ||
     pathname.startsWith("/api") ||
     pathname.startsWith("/_next") ||
-    pathname === "/unauthorized"
+    pathname === "/unauthorized" ||
+    pathname.match(/\.(png|jpg|jpeg|gif|svg|ico|webp|css|js|woff2?)$/)
   ) {
     return NextResponse.next();
   }
