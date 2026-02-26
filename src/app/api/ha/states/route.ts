@@ -15,7 +15,6 @@ const WANTED_ENTITIES = new Set([
   "light.thor",
   "light.freja",
   "light.walk_in",
-  "light.krybekaelder",
   "light.udendors",
   "light.trappe",
   // Media

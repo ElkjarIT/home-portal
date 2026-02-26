@@ -2,28 +2,15 @@
 
 import { useSession } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
-import { UserNav } from "@/components/user-nav";
+import { TopNav } from "@/components/top-nav";
 import {
   Home,
   Lightbulb,
   LightbulbOff,
   Wifi,
-  Globe2,
-  ShieldCheck,
-  KeyRound,
-  Container,
-  RefreshCw,
   ChevronRight,
   Tv,
   Image as ImageIcon,
-  Shield,
-  HardDrive,
-  Server,
-  Globe,
-  Users,
-  Cloud,
-  Github,
   Loader2,
   Printer,
   Activity,
@@ -49,7 +36,6 @@ const ROOM_LIGHTS = [
   { entity_id: "light.thor", name: "Thor" },
   { entity_id: "light.freja", name: "Freja" },
   { entity_id: "light.walk_in", name: "Walk-in" },
-  { entity_id: "light.krybekaelder", name: "Krybekælder" },
   { entity_id: "light.udendors", name: "Udendørs" },
   { entity_id: "light.trappe", name: "Trappe" },
 ];
@@ -91,91 +77,7 @@ const ENERGY_APPLIANCES = [
   { entity_id: "sensor.krybekaelder_pm_circulation_pump_power", name: "Cirk. Pumpe" },
 ];
 
-// ——— External service cards ———
 
-const externalCards = [
-  {
-    name: "Entra ID",
-    description: "Microsoft identity & access",
-    url: "https://portal.azure.com/#view/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/~/Overview",
-    icon: Users,
-    iconBg: "bg-blue-600/20",
-    iconColor: "text-blue-400",
-  },
-  {
-    name: "Cloudflare",
-    description: "DNS & CDN management",
-    url: "https://dash.cloudflare.com",
-    icon: Cloud,
-    iconBg: "bg-orange-500/20",
-    iconColor: "text-orange-400",
-  },
-  {
-    name: "GitHub",
-    description: "Source code & repositories",
-    url: "https://github.com",
-    icon: Github,
-    iconBg: "bg-violet-500/20",
-    iconColor: "text-violet-400",
-  },
-];
-
-// ——— Admin panel items ———
-
-const adminPanelItems = [
-  {
-    name: "Home Assistant",
-    description: "Dashboard & automations",
-    url: "https://ha.aser.dk",
-    icon: Home,
-    iconBg: "bg-sky-500/20",
-    iconColor: "text-sky-400",
-  },
-  {
-    name: "Pi-hole",
-    description: "DNS and ad blocking",
-    url: "https://pihole.aser.dk/admin",
-    icon: Shield,
-    iconBg: "bg-red-500/20",
-    iconColor: "text-red-400",
-    children: [
-      { name: "Primary", url: "https://pihole.aser.dk/admin" },
-      { name: "Secondary", url: "https://pihole2.aser.dk/admin" },
-    ],
-  },
-  {
-    name: "Nginx Proxy",
-    description: "Reverse proxy & SSL manager",
-    url: "https://nginx.aser.dk",
-    icon: Globe,
-    iconBg: "bg-emerald-500/20",
-    iconColor: "text-emerald-400",
-  },
-  {
-    name: "Proxmox VE",
-    description: "Virtual machine environment",
-    url: "https://pve.aser.dk",
-    icon: Server,
-    iconBg: "bg-purple-500/20",
-    iconColor: "text-purple-400",
-  },
-  {
-    name: "NAS",
-    description: "Network attached storage",
-    url: "https://nas01.aser.dk",
-    icon: HardDrive,
-    iconBg: "bg-blue-500/20",
-    iconColor: "text-blue-400",
-  },
-  {
-    name: "UniFi Network",
-    description: "Network management monitoring",
-    url: "https://unifi.ui.com/consoles/F4E2C6EDA3D60000000007D7CE7400000000083F74BA0000000065639621:621370638",
-    icon: Wifi,
-    iconBg: "bg-indigo-500/20",
-    iconColor: "text-indigo-400",
-  },
-];
 
 // ——— Types ———
 
@@ -377,36 +279,26 @@ export default function DashboardPage() {
 
   const firstName = session?.user?.name?.split(" ")[0] ?? "";
 
-  // Sticky admin flag — once true, stays true for the page lifecycle.
-  // Prevents the admin panel from flickering away when useSession()
-  // briefly returns null during a background session refresh.
-  const [isAdmin, setIsAdmin] = useState(false);
-  useEffect(() => {
-    const flag = (session?.user as { isAdmin?: boolean })?.isAdmin;
-    if (flag) setIsAdmin(true);
-  }, [session]);
-
   return (
     <div className="min-h-screen">
 
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <TopNav />
+
         {/* ——— Welcome Banner ——— */}
         <GlassCard className="mb-6 p-5">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-500/20 ring-1 ring-blue-400/30">
-                <Home className="h-6 w-6 text-blue-400" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-white sm:text-2xl">
-                  Welcome{firstName ? `, ${firstName}` : ""}
-                </h1>
-                <p className="text-sm text-white/50">
-                  Quick access to your home services
-                </p>
-              </div>
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-500/20 ring-1 ring-blue-400/30">
+              <Home className="h-6 w-6 text-blue-400" />
             </div>
-            <UserNav />
+            <div>
+              <h1 className="text-xl font-bold text-white sm:text-2xl">
+                Welcome{firstName ? `, ${firstName}` : ""}
+              </h1>
+              <p className="text-sm text-white/50">
+                Quick access to your home services
+              </p>
+            </div>
           </div>
         </GlassCard>
 
@@ -585,40 +477,6 @@ export default function DashboardPage() {
                   )}
                   <ChevronRight className="h-4 w-4 shrink-0 text-white/30" />
                 </GlassCard>
-              </div>
-            </section>
-
-            {/* — EXTERNAL SERVICES — */}
-            <section>
-              <SectionLabel icon={Globe2} iconColor="text-violet-400">
-                External Services
-              </SectionLabel>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                {externalCards.map((svc) => {
-                  const Icon = svc.icon;
-                  return (
-                    <a
-                      key={svc.name}
-                      href={svc.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <GlassCard className="p-4 transition-colors hover:bg-white/[0.12]">
-                        <div
-                          className={`mb-3 flex h-9 w-9 items-center justify-center rounded-xl ${svc.iconBg}`}
-                        >
-                          <Icon className={`h-4.5 w-4.5 ${svc.iconColor}`} />
-                        </div>
-                        <p className="text-sm font-medium text-white">
-                          {svc.name}
-                        </p>
-                        <p className="text-xs text-white/40">
-                          {svc.description}
-                        </p>
-                      </GlassCard>
-                    </a>
-                  );
-                })}
               </div>
             </section>
 
@@ -1027,168 +885,6 @@ export default function DashboardPage() {
 
           {/* === RIGHT COLUMN === */}
           <div className="space-y-6">
-            {/* — QUICK ACTIONS — */}
-            <section>
-              <SectionLabel icon={ShieldCheck} iconColor="text-teal-400">
-                Quick Actions
-              </SectionLabel>
-              <div className="space-y-3">
-                {/* Root CA */}
-                <Link href="/setup">
-                  <GlassCard className="p-4 transition-colors hover:bg-white/[0.12]">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-teal-500/20">
-                        <ShieldCheck className="h-5 w-5 text-teal-400" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-white">
-                          Root CA
-                        </p>
-                        <p className="text-xs text-white/40">
-                          Setup network root certificate
-                        </p>
-                      </div>
-                    </div>
-                    <div className="ml-12 mt-2">
-                      <span className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.08] px-2.5 py-0.5 text-[10px] font-medium text-white/60">
-                        <ShieldCheck className="mr-1 h-3 w-3" />
-                        Setup
-                      </span>
-                    </div>
-                  </GlassCard>
-                </Link>
-
-                {/* iCloudPD Auth */}
-                <GlassCard className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-purple-500/20">
-                      <KeyRound className="h-5 w-5 text-purple-400" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-white">
-                        iCloudPD Auth
-                      </p>
-                      <p className="text-xs text-white/40">
-                        Trigger iCloud re-auth for expired cookies
-                      </p>
-                    </div>
-                  </div>
-                  <div className="ml-12 mt-2 flex gap-2">
-                    <button
-                      type="button"
-                      disabled
-                      className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.08] px-2.5 py-0.5 text-[10px] font-medium text-white/60 transition-colors hover:bg-white/[0.15] disabled:opacity-50"
-                    >
-                      <RefreshCw className="mr-1 h-3 w-3" />
-                      Steffen
-                    </button>
-                    <button
-                      type="button"
-                      disabled
-                      className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.08] px-2.5 py-0.5 text-[10px] font-medium text-white/60 transition-colors hover:bg-white/[0.15] disabled:opacity-50"
-                    >
-                      <RefreshCw className="mr-1 h-3 w-3" />
-                      Violeta
-                    </button>
-                  </div>
-                </GlassCard>
-
-                {/* Containers */}
-                <GlassCard className="p-4 transition-colors hover:bg-white/[0.12]">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-cyan-500/20">
-                      <Container className="h-5 w-5 text-cyan-400" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-white">
-                        Containers
-                      </p>
-                      <p className="text-xs text-white/40">
-                        Manage Docker containers
-                      </p>
-                    </div>
-                  </div>
-                </GlassCard>
-              </div>
-            </section>
-
-            {/* — ADMIN PANEL — */}
-            {isAdmin && (
-              <section>
-                <div className="mb-3 flex items-center gap-2">
-                  <Shield className="h-4 w-4 text-red-400" />
-                  <h3 className="text-[11px] font-semibold uppercase tracking-[0.15em] text-red-400/70">
-                    Admin Panel
-                  </h3>
-                  <span className="ml-auto rounded-full border border-red-500/30 bg-red-500/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-red-400">
-                    Restricted
-                  </span>
-                </div>
-                <div className="rounded-2xl border-2 border-red-500/40 bg-red-950/25 shadow-[0_0_15px_rgba(239,68,68,0.08)] backdrop-blur-xl divide-y divide-red-500/10">
-                  {adminPanelItems.map((item) => {
-                    const Icon = item.icon;
-
-                    /* Split button for items with children (e.g. Pi-hole) */
-                    if (item.children) {
-                      return (
-                        <div
-                          key={item.name}
-                          className="grid grid-cols-2 divide-x divide-white/[0.06]"
-                        >
-                          {item.children.map((child) => (
-                            <a
-                              key={child.name}
-                              href={child.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center gap-3 p-3.5 transition-colors hover:bg-white/[0.06]"
-                            >
-                              <div
-                                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${item.iconBg}`}
-                              >
-                                <Icon className={`h-4 w-4 ${item.iconColor}`} />
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <p className="text-sm font-medium text-white">
-                                  {child.name}
-                                </p>
-                                <p className="truncate text-[11px] text-white/40">
-                                  {child.url.replace(/^https?:\/\//, "").replace(/\/admin$/, "")}
-                                </p>
-                              </div>
-                            </a>
-                          ))}
-                        </div>
-                      );
-                    }
-
-                    return (
-                      <a
-                        key={item.name}
-                        href={item.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-3 p-3.5 transition-colors hover:bg-white/[0.06]"
-                      >
-                        <div
-                          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${item.iconBg}`}
-                        >
-                          <Icon className={`h-4 w-4 ${item.iconColor}`} />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium text-white">
-                            {item.name}
-                          </p>
-                          <p className="truncate text-[11px] text-white/40">
-                            {item.description}
-                          </p>
-                        </div>
-                      </a>
-                    );
-                  })}
-                </div>
-              </section>
-            )}
           </div>
         </div>
 
