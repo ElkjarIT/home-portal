@@ -279,7 +279,15 @@ export default function DashboardPage() {
   const appleTvMedia = appleTv?.attributes?.media_title ?? "";
 
   const firstName = session?.user?.name?.split(" ")[0] ?? "";
-  const isAdmin = (session?.user as { isAdmin?: boolean })?.isAdmin;
+
+  // Sticky admin flag — once true, stays true for the page lifecycle.
+  // Prevents the admin panel from flickering away when useSession()
+  // briefly returns null during a background session refresh.
+  const [isAdmin, setIsAdmin] = useState(false);
+  useEffect(() => {
+    const flag = (session?.user as { isAdmin?: boolean })?.isAdmin;
+    if (flag) setIsAdmin(true);
+  }, [session]);
 
   return (
     <div className="min-h-screen">
