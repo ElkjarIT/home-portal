@@ -29,6 +29,12 @@ import {
   Activity,
   Circle,
   Clock,
+  Zap,
+  Car,
+  Flame,
+  BarChart3,
+  Plug,
+  BatteryCharging,
 } from "lucide-react";
 
 // ——— Room lights from HA ———
@@ -72,6 +78,17 @@ const INFRA_DEVICES = [
   { entity_id: "device_tracker.garagen", name: "Garagen AP (AC-LR)", uptimeEntity: "sensor.garagen_uptime" },
   { entity_id: "device_tracker.usw2", name: "USW1 (Switch)", uptimeEntity: "sensor.usw2_uptime" },
   { entity_id: "device_tracker.cannon", name: "Canon Printer", uptimeEntity: null },
+];
+
+// ——— Energy monitor devices ———
+
+const ENERGY_APPLIANCES = [
+  { entity_id: "sensor.stue_pm_power", name: "Stue" },
+  { entity_id: "sensor.krybekaelder_pm_network_rack_power", name: "Network Rack" },
+  { entity_id: "sensor.fyrrum_pm_tumbler_power", name: "Tørretumbler" },
+  { entity_id: "sensor.bryggers_pm_washing_machine_power", name: "Vaskemaskine" },
+  { entity_id: "sensor.koekken_pm_dishwasher_power", name: "Opvaskemaskine" },
+  { entity_id: "sensor.krybekaelder_pm_circulation_pump_power", name: "Cirk. Pumpe" },
 ];
 
 // ——— External service cards ———
@@ -198,6 +215,11 @@ interface ImmichStorage {
   diskUsagePercentage: number;
 }
 
+interface EnergyDay {
+  date: string;
+  kwh: number;
+}
+
 // ——— Helper Components ———
 
 function GlassCard({
@@ -249,6 +271,9 @@ export default function DashboardPage() {
   const [immichStats, setImmichStats] = useState<ImmichStats | null>(null);
   const [immichStorage, setImmichStorage] = useState<ImmichStorage | null>(null);
   const [immichLoading, setImmichLoading] = useState(true);
+  const [energyDays, setEnergyDays] = useState<EnergyDay[]>([]);
+  const [energyTodayKwh, setEnergyTodayKwh] = useState(0);
+  const [energyLoading, setEnergyLoading] = useState(true);
 
   // Keep a stable ref so the effect never re-runs
   const updateRef = useRef(updateSession);
@@ -308,6 +333,27 @@ export default function DashboardPage() {
     }
     fetchImmichJobs();
     const iv = setInterval(fetchImmichJobs, 10_000);
+    return () => clearInterval(iv);
+  }, []);
+
+  // Fetch energy history (daily kWh)
+  useEffect(() => {
+    async function fetchEnergy() {
+      try {
+        const res = await fetch("/api/ha/energy");
+        if (res.ok) {
+          const data = await res.json();
+          setEnergyDays(data.dailyKwh ?? []);
+          setEnergyTodayKwh(data.todayKwh ?? 0);
+        }
+      } catch {
+        // ignore
+      } finally {
+        setEnergyLoading(false);
+      }
+    }
+    fetchEnergy();
+    const iv = setInterval(fetchEnergy, 60_000); // refresh every 60s (history is heavy)
     return () => clearInterval(iv);
   }, []);
 
@@ -434,127 +480,29 @@ export default function DashboardPage() {
                   rel="noopener noreferrer"
                 >
                   <GlassCard className="p-4 transition-colors hover:bg-white/[0.12]">
-                    {/* Header */}
                     <div className="flex items-center gap-3">
                       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-500/20">
                         <ImageIcon className="h-4 w-4 text-blue-400" />
                       </div>
                       <div className="min-w-0 flex-1">
                         <span className="text-sm font-medium text-white">Immich</span>
-                        <p className="text-[11px] text-white/30">Photo & video library</p>
+                        {immichLoading ? (
+                          <p className="text-[11px] text-white/30">Loading…</p>
+                        ) : immichStats ? (
+                          <p className="text-[11px] text-white/40">
+                            {immichStats.photos.toLocaleString()} photos · {immichStats.videos.toLocaleString()} videos
+                          </p>
+                        ) : (
+                          <p className="text-[11px] text-white/30">Photo & video library</p>
+                        )}
                       </div>
+                      {immichStorage && (
+                        <span className="text-[11px] tabular-nums text-white/40">
+                          {immichStorage.diskUsagePercentage.toFixed(0)}%
+                        </span>
+                      )}
                       <ChevronRight className="h-4 w-4 shrink-0 text-white/30" />
                     </div>
-
-                    {immichLoading ? (
-                      <div className="mt-3 flex items-center gap-2 text-xs text-white/30">
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                        Loading…
-                      </div>
-                    ) : (
-                      <>
-                        {/* Stats row */}
-                        {immichStats && (
-                          <div className="mt-3 grid grid-cols-3 gap-3">
-                            <div className="rounded-lg bg-white/[0.05] px-3 py-2 text-center">
-                              <p className="text-base font-bold tabular-nums text-white">
-                                {immichStats.photos.toLocaleString()}
-                              </p>
-                              <p className="text-[10px] font-medium uppercase tracking-wider text-white/40">
-                                Photos
-                              </p>
-                            </div>
-                            <div className="rounded-lg bg-white/[0.05] px-3 py-2 text-center">
-                              <p className="text-base font-bold tabular-nums text-white">
-                                {immichStats.videos.toLocaleString()}
-                              </p>
-                              <p className="text-[10px] font-medium uppercase tracking-wider text-white/40">
-                                Videos
-                              </p>
-                            </div>
-                            <div className="rounded-lg bg-white/[0.05] px-3 py-2 text-center">
-                              <p className="text-base font-bold tabular-nums text-white">
-                                {(immichStats.photos + immichStats.videos).toLocaleString()}
-                              </p>
-                              <p className="text-[10px] font-medium uppercase tracking-wider text-white/40">
-                                Total
-                              </p>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Storage bar */}
-                        {immichStorage && (
-                          <div className="mt-3">
-                            <div className="mb-1 flex items-center justify-between text-[11px]">
-                              <span className="text-white/50">
-                                {immichStorage.diskUse} / {immichStorage.diskSize}
-                              </span>
-                              <span className="font-medium tabular-nums text-white/60">
-                                {immichStorage.diskUsagePercentage.toFixed(1)}%
-                              </span>
-                            </div>
-                            <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
-                              <div
-                                className={`h-full rounded-full transition-all ${
-                                  immichStorage.diskUsagePercentage > 85
-                                    ? "bg-red-400/70"
-                                    : immichStorage.diskUsagePercentage > 70
-                                      ? "bg-amber-400/70"
-                                      : "bg-blue-400/60"
-                                }`}
-                                style={{ width: `${Math.min(100, immichStorage.diskUsagePercentage)}%` }}
-                              />
-                            </div>
-                            <p className="mt-1 text-[10px] text-white/30">
-                              {immichStorage.diskAvailable} available
-                            </p>
-                          </div>
-                        )}
-
-                        {/* Job queues */}
-                        {immichQueues.length > 0 && (
-                          <div className="mt-3 border-t border-white/[0.06] pt-3 space-y-1.5">
-                            <p className="text-[10px] font-semibold uppercase tracking-wider text-white/35 mb-1">Active Queues</p>
-                            {immichQueues.map((q) => (
-                              <div
-                                key={q.name}
-                                className="flex items-center gap-2 text-xs"
-                              >
-                                <span className="w-[6.5rem] shrink-0 truncate font-medium text-white/60">
-                                  {q.name}
-                                </span>
-                                {q.pending > 0 ? (
-                                  <>
-                                    <div className="h-1 flex-1 overflow-hidden rounded-full bg-white/10">
-                                      <div
-                                        className="h-full rounded-full bg-blue-400/60 transition-all"
-                                        style={{
-                                          width: `${Math.min(
-                                            100,
-                                            (q.active / Math.max(q.pending, 1)) * 100
-                                          )}%`,
-                                        }}
-                                      />
-                                    </div>
-                                    <span className="shrink-0 tabular-nums text-white/40">
-                                      {q.pending.toLocaleString()}
-                                    </span>
-                                  </>
-                                ) : (
-                                  <span className="text-white/25">idle</span>
-                                )}
-                                {q.failed > 0 && (
-                                  <span className="shrink-0 text-red-400/70">
-                                    {q.failed} err
-                                  </span>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </>
-                    )}
                   </GlassCard>
                 </a>
 
@@ -665,6 +613,206 @@ export default function DashboardPage() {
                   );
                 })}
               </div>
+            </section>
+
+            {/* — ENERGY MONITORING — */}
+            <section>
+              <SectionLabel icon={Zap} iconColor="text-yellow-400">
+                Energy Monitoring
+              </SectionLabel>
+              <GlassCard className="p-4">
+                {loading && energyLoading ? (
+                  <div className="flex items-center gap-2 text-xs text-white/30">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    Loading…
+                  </div>
+                ) : (
+                  <>
+                    {/* Live grid power */}
+                    {(() => {
+                      const gridPower = haStates.find((e) => e.entity_id === "sensor.grid_connection_import_power");
+                      const watts = gridPower ? parseInt(gridPower.state, 10) : NaN;
+                      const l1 = parseInt(haStates.find((e) => e.entity_id === "sensor.grid_connection_import_power_l1")?.state ?? "", 10);
+                      const l2 = parseInt(haStates.find((e) => e.entity_id === "sensor.grid_connection_import_power_l2")?.state ?? "", 10);
+                      const l3 = parseInt(haStates.find((e) => e.entity_id === "sensor.grid_connection_import_power_l3")?.state ?? "", 10);
+                      return (
+                        <div className="mb-4">
+                          <div className="flex items-baseline gap-2">
+                            <Zap className="h-4 w-4 text-yellow-400" />
+                            <span className="text-2xl font-bold tabular-nums text-white">
+                              {isNaN(watts) ? "—" : watts.toLocaleString()}
+                            </span>
+                            <span className="text-sm text-white/40">W</span>
+                            <span className="ml-auto text-xs tabular-nums text-white/30">
+                              Today: {energyTodayKwh.toFixed(1)} kWh
+                            </span>
+                          </div>
+                          {!isNaN(l1) && (
+                            <div className="mt-1 flex gap-3 text-[10px] text-white/30">
+                              <span>L1: {l1}W</span>
+                              <span>L2: {isNaN(l2) ? "—" : l2}W</span>
+                              <span>L3: {isNaN(l3) ? "—" : l3}W</span>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
+
+                    {/* 7-day energy graph */}
+                    {energyDays.length > 0 && (() => {
+                      const last7 = energyDays.slice(-7);
+                      const maxKwh = Math.max(...last7.map((d) => d.kwh), 1);
+                      const avgKwh = last7.reduce((s, d) => s + d.kwh, 0) / last7.length;
+                      const todayStr = new Date().toISOString().split("T")[0];
+                      return (
+                        <div className="mb-4 rounded-xl bg-white/[0.03] p-3">
+                          <div className="mb-3 flex items-center justify-between">
+                            <p className="text-[10px] font-semibold uppercase tracking-wider text-white/35">
+                              <BarChart3 className="mr-1 inline h-3 w-3 -translate-y-px" />
+                              Daily Consumption
+                            </p>
+                            <span className="text-[10px] tabular-nums text-white/25">avg {avgKwh.toFixed(1)} kWh</span>
+                          </div>
+
+                          {/* Bar chart area */}
+                          <div className="relative flex items-end gap-2" style={{ height: 96 }}>
+                            {/* Avg reference line */}
+                            <div
+                              className="pointer-events-none absolute left-0 right-0 border-t border-dashed border-white/[0.07]"
+                              style={{ bottom: `${(avgKwh / maxKwh) * 100}%` }}
+                            />
+
+                            {last7.map((d) => {
+                              const pct = (d.kwh / maxKwh) * 100;
+                              const isToday = d.date === todayStr;
+                              const dayLabel = new Date(d.date + "T12:00:00").toLocaleDateString("da-DK", { weekday: "short" });
+
+                              return (
+                                <div key={d.date} className="flex flex-1 flex-col items-center gap-1">
+                                  {/* kWh value on top */}
+                                  <span
+                                    className={`text-[11px] font-semibold tabular-nums ${
+                                      isToday ? "text-yellow-300" : "text-white/50"
+                                    }`}
+                                  >
+                                    {d.kwh.toFixed(1)}
+                                  </span>
+
+                                  {/* Bar */}
+                                  <div className="relative flex w-full items-end justify-center" style={{ height: 64 }}>
+                                    <div
+                                      className={`w-full rounded-md transition-all duration-500 ${
+                                        isToday
+                                          ? "bg-gradient-to-t from-yellow-500/70 to-yellow-300/50 shadow-[0_0_12px_rgba(250,204,21,0.2)] ring-1 ring-yellow-400/30"
+                                          : "bg-white/[0.08] hover:bg-white/[0.12]"
+                                      }`}
+                                      style={{ height: `${Math.max(6, pct)}%` }}
+                                    />
+                                  </div>
+
+                                  {/* Day label */}
+                                  <span
+                                    className={`text-[10px] font-medium ${
+                                      isToday ? "text-yellow-300" : "text-white/30"
+                                    }`}
+                                  >
+                                    {isToday ? "I dag" : dayLabel}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })()}
+
+                    {/* Appliances section */}
+                    <div className="border-t border-white/[0.06] pt-3">
+                      <p className="mb-2 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-white/35">
+                        <Plug className="h-3 w-3" /> Appliances
+                      </p>
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-1 sm:grid-cols-3">
+                        {ENERGY_APPLIANCES.map((dev) => {
+                          const entity = haStates.find((e) => e.entity_id === dev.entity_id);
+                          const w = entity ? parseFloat(entity.state) : NaN;
+                          const isActive = !isNaN(w) && w > 5;
+                          return (
+                            <div key={dev.entity_id} className="flex items-center justify-between rounded-lg px-2 py-1">
+                              <span className={`text-xs truncate ${isActive ? "text-white/70" : "text-white/30"}`}>{dev.name}</span>
+                              <span className={`text-xs tabular-nums ${isActive ? "text-yellow-300" : "text-white/25"}`}>
+                                {isNaN(w) ? "—" : `${w}W`}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Heat pump section */}
+                    {(() => {
+                      const hpToday = haStates.find((e) => e.entity_id === "sensor.varmepumpe_el_dag");
+                      const hpTotal = haStates.find((e) => e.entity_id === "sensor.varmepumpe_elforbrug_total");
+                      const todayWh = hpToday ? parseFloat(hpToday.state) : NaN;
+                      const totalWh = hpTotal ? parseFloat(hpTotal.state) : NaN;
+                      return (
+                        <div className="mt-3 border-t border-white/[0.06] pt-3">
+                          <p className="mb-2 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-white/35">
+                            <Flame className="h-3 w-3" /> Heat Pump
+                          </p>
+                          <div className="flex gap-4 text-xs">
+                            <span className="text-white/50">Today: <span className="tabular-nums text-white/70">{isNaN(todayWh) ? "—" : `${(todayWh / 1000).toFixed(1)} kWh`}</span></span>
+                            <span className="text-white/50">Total: <span className="tabular-nums text-white/70">{isNaN(totalWh) ? "—" : `${(totalWh / 1000).toFixed(1)} kWh`}</span></span>
+                          </div>
+                        </div>
+                      );
+                    })()}
+
+                    {/* EV Charger section */}
+                    {(() => {
+                      const chargingBin = haStates.find((e) => e.entity_id === "binary_sensor.bilskirner_charging");
+                      const chargingEnum = haStates.find((e) => e.entity_id === "sensor.bilskirner_charging");
+                      const chargerPower = haStates.find((e) => e.entity_id === "sensor.bilskirner_charger_power");
+                      const energyAdded = haStates.find((e) => e.entity_id === "sensor.bilskirner_charge_energy_added");
+                      const battLevel = haStates.find((e) => e.entity_id === "sensor.bilskirner_battery_level");
+                      const isCharging = chargingBin?.state === "on";
+                      const statusText = chargingEnum?.state ?? "unknown";
+                      const powerKw = chargerPower ? parseFloat(chargerPower.state) : 0;
+                      const addedKwh = energyAdded ? parseFloat(energyAdded.state) : 0;
+                      const battery = battLevel ? parseInt(battLevel.state, 10) : NaN;
+                      return (
+                        <div className="mt-3 border-t border-white/[0.06] pt-3">
+                          <p className="mb-2 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-white/35">
+                            <Car className="h-3 w-3" /> EV Charger — Bilskirner
+                          </p>
+                          <div className="flex items-center gap-3">
+                            {isCharging ? (
+                              <span className="flex items-center gap-1.5 rounded-full bg-green-500/15 px-2.5 py-1 text-xs font-medium text-green-400">
+                                <BatteryCharging className="h-3.5 w-3.5 animate-pulse" />
+                                Charging — {powerKw} kW
+                              </span>
+                            ) : (
+                              <span className="flex items-center gap-1.5 rounded-full bg-white/[0.05] px-2.5 py-1 text-xs text-white/40">
+                                <Circle className="h-2 w-2 fill-white/20 text-white/20" />
+                                {statusText === "disconnected" ? "Disconnected" : statusText === "stopped" ? "Stopped" : statusText === "complete" ? "Complete" : statusText.charAt(0).toUpperCase() + statusText.slice(1)}
+                              </span>
+                            )}
+                            {!isNaN(battery) && (
+                              <span className="text-xs tabular-nums text-white/40">
+                                Battery: {battery}%
+                              </span>
+                            )}
+                            {addedKwh > 0 && (
+                              <span className="text-xs tabular-nums text-white/30">
+                                +{addedKwh.toFixed(1)} kWh
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </>
+                )}
+              </GlassCard>
             </section>
 
             {/* — PRINTER + INFRASTRUCTURE (side by side) — */}
@@ -958,7 +1106,7 @@ export default function DashboardPage() {
                     Restricted
                   </span>
                 </div>
-                <div className="rounded-2xl border border-red-500/20 bg-red-950/20 backdrop-blur-xl divide-y divide-white/[0.06]">
+                <div className="rounded-2xl border-2 border-red-500/40 bg-red-950/25 shadow-[0_0_15px_rgba(239,68,68,0.08)] backdrop-blur-xl divide-y divide-red-500/10">
                   {adminPanelItems.map((item) => {
                     const Icon = item.icon;
 

@@ -43,6 +43,27 @@ const WANTED_ENTITIES = new Set([
   "sensor.freja_uptime",
   "sensor.garagen_uptime",
   "sensor.usw2_uptime",
+  // Energy — Grid
+  "sensor.grid_connection_import_power",
+  "sensor.grid_connection_import_power_l1",
+  "sensor.grid_connection_import_power_l2",
+  "sensor.grid_connection_import_power_l3",
+  // Energy — Appliances
+  "sensor.stue_pm_power",
+  "sensor.krybekaelder_pm_network_rack_power",
+  "sensor.fyrrum_pm_tumbler_power",
+  "sensor.bryggers_pm_washing_machine_power",
+  "sensor.koekken_pm_dishwasher_power",
+  "sensor.krybekaelder_pm_circulation_pump_power",
+  // Energy — Heat pump
+  "sensor.varmepumpe_elforbrug_total",
+  "sensor.varmepumpe_el_dag",
+  // Energy — EV Charger (Bilskirner / Tesla)
+  "sensor.bilskirner_charger_power",
+  "sensor.bilskirner_charge_energy_added",
+  "sensor.bilskirner_battery_level",
+  "sensor.bilskirner_charging",
+  "binary_sensor.bilskirner_charging",
 ]);
 
 export async function GET() {
