@@ -33,6 +33,9 @@ yarn-error.log*
 # env files
 .env*.local
 
+# deployment secrets — never commit actual .env files
+infra/**/.env
+
 # vercel
 .vercel
 

@@ -33,6 +33,11 @@ services:
       # Disable the API server; run only background microservices workers.
       IMMICH_WORKERS_EXCLUDE: "api"
 
+      # ── Upload/library paths — MUST match the primary server's configuration ──
+      # The primary server uses /opt/immich/uploads inside the container.
+      UPLOAD_LOCATION: /opt/immich/uploads
+      IMMICH_MEDIA_LOCATION: /opt/immich/uploads
+
       # ── Database (primary server) ─────────────────────────────────────────
       DB_HOSTNAME: ${DB_HOSTNAME}
       DB_PORT: ${DB_PORT:-5432}
@@ -47,9 +52,10 @@ services:
       TZ: ${TZ:-Europe/Copenhagen}
 
     volumes:
-      # Must be the SAME upload/library content that the primary server mounts.
+      # ${UPLOAD_LOCATION} is the HOST path on Chappie (e.g. /mnt/immich_library).
+      # It is mounted to /opt/immich/uploads to match the primary server's container path.
       # Mount the SMB/NFS share on this host before starting the container.
-      - ${UPLOAD_LOCATION}:/usr/src/app/upload
+      - ${UPLOAD_LOCATION}:/opt/immich/uploads
 
     # No healthcheck: the worker process has no HTTP endpoint when the API is
     # excluded. Monitor via `docker logs -f immich_worker` or Immich job queue.
