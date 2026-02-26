@@ -661,9 +661,11 @@ export default function DashboardPage() {
                       );
                     })()}
 
+                    {/* Today's usage + Live power side by side */}
+                    <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
                     {/* Today's usage per device */}
                     {deviceToday.length > 0 && (
-                      <div className="mb-4 rounded-xl bg-white/[0.03] p-3">
+                      <div className="rounded-xl bg-white/[0.03] p-3">
                         <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-white/50">
                           <Zap className="mr-1 inline h-3 w-3 -translate-y-px text-yellow-400" />
                           Today&apos;s Usage by Device
@@ -692,11 +694,11 @@ export default function DashboardPage() {
                     )}
 
                     {/* Appliances — live power */}
-                    <div className="border-t border-white/[0.06] pt-3">
+                    <div className="rounded-xl bg-white/[0.03] p-3">
                       <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-white/50">
                         <Plug className="h-3 w-3" /> Live Power
                       </p>
-                      <div className="grid grid-cols-2 gap-x-4 gap-y-1 sm:grid-cols-3">
+                      <div className="grid grid-cols-1 gap-y-1">
                         {ENERGY_APPLIANCES.map((dev) => {
                           const entity = haStates.find((e) => e.entity_id === dev.entity_id);
                           const w = entity ? parseFloat(entity.state) : NaN;
@@ -711,6 +713,7 @@ export default function DashboardPage() {
                           );
                         })}
                       </div>
+                    </div>
                     </div>
 
                     {/* EV Charger section */}
