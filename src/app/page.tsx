@@ -220,6 +220,11 @@ interface EnergyDay {
   kwh: number;
 }
 
+interface DeviceEnergy {
+  name: string;
+  kwh: number;
+}
+
 // ——— Helper Components ———
 
 function GlassCard({
@@ -273,6 +278,7 @@ export default function DashboardPage() {
   const [immichLoading, setImmichLoading] = useState(true);
   const [energyDays, setEnergyDays] = useState<EnergyDay[]>([]);
   const [energyTodayKwh, setEnergyTodayKwh] = useState(0);
+  const [deviceToday, setDeviceToday] = useState<DeviceEnergy[]>([]);
   const [energyLoading, setEnergyLoading] = useState(true);
 
   // Keep a stable ref so the effect never re-runs
@@ -345,6 +351,7 @@ export default function DashboardPage() {
           const data = await res.json();
           setEnergyDays(data.dailyKwh ?? []);
           setEnergyTodayKwh(data.todayKwh ?? 0);
+          setDeviceToday(data.deviceToday ?? []);
         }
       } catch {
         // ignore
@@ -726,10 +733,40 @@ export default function DashboardPage() {
                       );
                     })()}
 
-                    {/* Appliances section */}
+                    {/* Today's usage per device */}
+                    {deviceToday.length > 0 && (
+                      <div className="mb-4 rounded-xl bg-white/[0.03] p-3">
+                        <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-white/35">
+                          <Zap className="mr-1 inline h-3 w-3 -translate-y-px text-yellow-400" />
+                          Today&apos;s Usage by Device
+                        </p>
+                        <div className="space-y-1.5">
+                          {[...deviceToday].sort((a, b) => b.kwh - a.kwh).map((dev) => {
+                            const maxDevKwh = Math.max(...deviceToday.map((d) => d.kwh), 0.1);
+                            const pct = (dev.kwh / maxDevKwh) * 100;
+                            return (
+                              <div key={dev.name} className="group">
+                                <div className="flex items-center justify-between mb-0.5">
+                                  <span className="text-xs text-white/60">{dev.name}</span>
+                                  <span className="text-xs font-semibold tabular-nums text-white/70">{dev.kwh.toFixed(2)} kWh</span>
+                                </div>
+                                <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/[0.05]">
+                                  <div
+                                    className="h-full rounded-full bg-gradient-to-r from-yellow-500/60 to-yellow-300/40 transition-all duration-700"
+                                    style={{ width: `${Math.max(2, pct)}%` }}
+                                  />
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Appliances — live power */}
                     <div className="border-t border-white/[0.06] pt-3">
                       <p className="mb-2 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-white/35">
-                        <Plug className="h-3 w-3" /> Appliances
+                        <Plug className="h-3 w-3" /> Live Power
                       </p>
                       <div className="grid grid-cols-2 gap-x-4 gap-y-1 sm:grid-cols-3">
                         {ENERGY_APPLIANCES.map((dev) => {
@@ -740,32 +777,13 @@ export default function DashboardPage() {
                             <div key={dev.entity_id} className="flex items-center justify-between rounded-lg px-2 py-1">
                               <span className={`text-xs truncate ${isActive ? "text-white/70" : "text-white/30"}`}>{dev.name}</span>
                               <span className={`text-xs tabular-nums ${isActive ? "text-yellow-300" : "text-white/25"}`}>
-                                {isNaN(w) ? "—" : `${w}W`}
+                                {isNaN(w) ? "—" : `${Math.round(w)}W`}
                               </span>
                             </div>
                           );
                         })}
                       </div>
                     </div>
-
-                    {/* Heat pump section */}
-                    {(() => {
-                      const hpToday = haStates.find((e) => e.entity_id === "sensor.varmepumpe_el_dag");
-                      const hpTotal = haStates.find((e) => e.entity_id === "sensor.varmepumpe_elforbrug_total");
-                      const todayWh = hpToday ? parseFloat(hpToday.state) : NaN;
-                      const totalWh = hpTotal ? parseFloat(hpTotal.state) : NaN;
-                      return (
-                        <div className="mt-3 border-t border-white/[0.06] pt-3">
-                          <p className="mb-2 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-white/35">
-                            <Flame className="h-3 w-3" /> Heat Pump
-                          </p>
-                          <div className="flex gap-4 text-xs">
-                            <span className="text-white/50">Today: <span className="tabular-nums text-white/70">{isNaN(todayWh) ? "—" : `${(todayWh / 1000).toFixed(1)} kWh`}</span></span>
-                            <span className="text-white/50">Total: <span className="tabular-nums text-white/70">{isNaN(totalWh) ? "—" : `${(totalWh / 1000).toFixed(1)} kWh`}</span></span>
-                          </div>
-                        </div>
-                      );
-                    })()}
 
                     {/* EV Charger section */}
                     {(() => {
