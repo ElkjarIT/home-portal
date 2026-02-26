@@ -32,9 +32,20 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Providers session={session}>
-          <TooltipProvider>{children}</TooltipProvider>
-        </Providers>
+        {/* Global background */}
+        <div className="fixed inset-0 z-0">
+          <img
+            src="/bg-smart-home.png"
+            alt=""
+            className="h-full w-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/50 to-black/80" />
+        </div>
+        <div className="relative z-10">
+          <Providers session={session}>
+            <TooltipProvider>{children}</TooltipProvider>
+          </Providers>
+        </div>
       </body>
     </html>
   );
