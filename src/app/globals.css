@@ -168,3 +168,37 @@
 .animate-ev-charge-icon {
   animation: ev-charge-icon 1.5s ease-in-out infinite;
 }
+
+/* TV screen animations */
+@keyframes tv-static {
+  0%, 100% { opacity: 0.03; }
+  50% { opacity: 0.06; }
+}
+.animate-tv-static {
+  animation: tv-static 0.15s steps(2) infinite;
+}
+
+@keyframes tv-scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+.animate-tv-scanline {
+  animation: tv-scanline 4s linear infinite;
+}
+
+@keyframes tv-glow-playing {
+  0%, 100% { box-shadow: 0 0 12px rgba(74,222,128,0.12), inset 0 0 20px rgba(74,222,128,0.04); }
+  50% { box-shadow: 0 0 20px rgba(74,222,128,0.2), inset 0 0 30px rgba(74,222,128,0.06); }
+}
+.animate-tv-glow-playing {
+  animation: tv-glow-playing 3s ease-in-out infinite;
+}
+
+@keyframes tv-color-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.animate-tv-color-shift {
+  animation: tv-color-shift 6s ease-in-out infinite;
+}

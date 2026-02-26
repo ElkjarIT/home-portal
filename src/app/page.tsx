@@ -28,6 +28,7 @@ import {
   Camera,
   ListTodo,
   ThermometerSnowflake,
+  Power,
 } from "lucide-react";
 
 // ——— Room lights from HA ———
@@ -332,12 +333,144 @@ export default function DashboardPage() {
                 Smart Home Devices
               </SectionLabel>
               <div className="space-y-3">
-                {/* Immich card */}
+                {/* Room Lights + Apple TV side by side */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+                  {/* Room Lights — 2/3 */}
+                  <GlassCard className="p-4 lg:col-span-2">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-500/20">
+                        <Lightbulb className="h-5 w-5 text-amber-400" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <span className="text-sm font-medium text-white">Room Lights</span>
+                      </div>
+                      <div className="flex items-baseline gap-1.5">
+                        <span className="text-2xl font-bold tabular-nums text-amber-300 drop-shadow-[0_0_8px_rgba(251,191,36,0.3)]">
+                          {loading ? "—" : onCount}
+                        </span>
+                        <span className="text-xs text-white/40">/ {ROOM_LIGHTS.length} on</span>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 sm:grid-cols-3">
+                      {ROOM_LIGHTS.map((room) => {
+                        const state = lights.find((l) => l.entity_id === room.entity_id);
+                        const isOn = state?.state === "on";
+                        const isUnavailable = !state || state.state === "unavailable";
+                        return (
+                          <div
+                            key={room.entity_id}
+                            className={`flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors ${
+                              isOn ? "bg-amber-400/10" : isUnavailable && !loading ? "opacity-30" : ""
+                            }`}
+                          >
+                            {isOn ? (
+                              <Lightbulb className="h-3.5 w-3.5 shrink-0 text-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.5)]" />
+                            ) : (
+                              <LightbulbOff className="h-3.5 w-3.5 shrink-0 text-white/35" />
+                            )}
+                            <span className={`text-xs font-medium truncate ${isOn ? "text-amber-200" : "text-white/55"}`}>
+                              {room.name}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </GlassCard>
+
+                  {/* Apple TV — 1/3 with TV screen visual */}
+                  <GlassCard className="p-4 flex flex-col">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Tv className="h-4 w-4 text-slate-300" />
+                      <span className="text-sm font-medium text-white">Apple TV</span>
+                    </div>
+                    {/* TV Screen */}
+                    <div className={`relative flex-1 min-h-[100px] rounded-lg border-2 overflow-hidden transition-all duration-500 ${
+                      appleTvState === "playing"
+                        ? "border-green-400/30 animate-tv-glow-playing"
+                        : appleTvState === "paused"
+                          ? "border-yellow-400/25 shadow-[0_0_10px_rgba(250,204,21,0.08)]"
+                          : appleTvState === "idle" || appleTvState === "standby"
+                            ? "border-white/[0.08]"
+                            : "border-white/[0.05]"
+                    }`}>
+                      {/* Screen background */}
+                      <div className={`absolute inset-0 transition-all duration-700 ${
+                        appleTvState === "playing"
+                          ? "bg-gradient-to-br from-green-900/30 via-emerald-800/20 to-teal-900/30 bg-[length:200%_200%] animate-tv-color-shift"
+                          : appleTvState === "paused"
+                            ? "bg-gradient-to-br from-yellow-900/20 via-amber-800/15 to-orange-900/20"
+                            : appleTvState === "idle" || appleTvState === "standby"
+                              ? "bg-gradient-to-b from-slate-800/30 to-slate-900/40"
+                              : "bg-black/40"
+                      }`} />
+                      {/* Scanline effect when playing */}
+                      {appleTvState === "playing" && (
+                        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                          <div className="animate-tv-scanline absolute inset-x-0 h-[2px] bg-white/[0.04]" />
+                        </div>
+                      )}
+                      {/* Static noise when off */}
+                      {appleTvState === "off" && (
+                        <div className="absolute inset-0 animate-tv-static" style={{
+                          backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E\")",
+                          backgroundSize: "100px 100px"
+                        }} />
+                      )}
+                      {/* Center content */}
+                      <div className="relative flex flex-col items-center justify-center h-full min-h-[100px] p-3">
+                        {loading ? (
+                          <Loader2 className="h-5 w-5 animate-spin text-white/30" />
+                        ) : appleTvState === "playing" ? (
+                          <>
+                            <div className="flex items-center gap-1.5 mb-1.5">
+                              <span className="flex h-2 w-2 rounded-full bg-green-400 animate-pulse" />
+                              <span className="text-[10px] font-bold uppercase tracking-widest text-green-400/80">Streaming</span>
+                            </div>
+                            <p className="text-xs font-semibold text-white/90 text-center truncate max-w-full">
+                              {appleTvMedia || "Playing"}
+                            </p>
+                            {appleTvApp && (
+                              <p className="text-[10px] text-white/40 mt-0.5">{appleTvApp}</p>
+                            )}
+                          </>
+                        ) : appleTvState === "paused" ? (
+                          <>
+                            <div className="flex items-center gap-1.5 mb-1.5">
+                              <span className="flex h-2 w-2 rounded-full bg-yellow-400/70" />
+                              <span className="text-[10px] font-bold uppercase tracking-widest text-yellow-400/70">Paused</span>
+                            </div>
+                            {appleTvMedia && (
+                              <p className="text-xs text-white/60 text-center truncate max-w-full">{appleTvMedia}</p>
+                            )}
+                          </>
+                        ) : appleTvState === "idle" || appleTvState === "standby" ? (
+                          <>
+                            <Tv className="h-5 w-5 text-white/20 mb-1" />
+                            <span className="text-[10px] text-white/35">{appleTvApp || "Standby"}</span>
+                          </>
+                        ) : (
+                          <>
+                            <div className="h-5 w-5 rounded-full border border-white/10 flex items-center justify-center mb-1">
+                              <Power className="h-3 w-3 text-white/15" />
+                            </div>
+                            <span className="text-[10px] text-white/25">Off</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    {/* TV stand */}
+                    <div className="mx-auto mt-1.5 h-1 w-12 rounded-full bg-white/[0.06]" />
+                  </GlassCard>
+                </div>
+
+                {/* Immich + Climate side by side */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+                {/* Immich card — 2/3 */}
                 <a
                   href="https://immich.aser.dk"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group"
+                  className="group lg:col-span-2"
                 >
                   <GlassCard className="p-4 transition-all duration-300 hover:bg-white/[0.12] hover:shadow-[0_0_24px_rgba(59,130,246,0.08)]">
                     {/* Header */}
@@ -462,56 +595,6 @@ export default function DashboardPage() {
                   </GlassCard>
                 </a>
 
-                {/* Lights + Climate side by side */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                {/* Light entities — 2/3 width */}
-                <GlassCard className="p-4 lg:col-span-2">
-                  <div className="flex items-center gap-3">
-                    <Lightbulb className="h-4 w-4 text-amber-400" />
-                    <span className="text-sm font-medium text-white">
-                      Room Lights
-                    </span>
-                    <span className="flex-1 text-xs text-white/45">
-                      {loading ? "Loading..." : `${onCount} of ${ROOM_LIGHTS.length} on`}
-                    </span>
-                  </div>
-                  <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1.5 sm:grid-cols-3">
-                    {ROOM_LIGHTS.map((room) => {
-                      const state = lights.find(
-                        (l) => l.entity_id === room.entity_id
-                      );
-                      const isOn = state?.state === "on";
-                      const isUnavailable =
-                        !state || state.state === "unavailable";
-                      return (
-                        <div
-                          key={room.entity_id}
-                          className={`flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors ${
-                            isOn
-                              ? "bg-amber-400/10"
-                              : isUnavailable && !loading
-                                ? "opacity-30"
-                                : ""
-                          }`}
-                        >
-                          {isOn ? (
-                            <Lightbulb className="h-3.5 w-3.5 shrink-0 text-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.5)]" />
-                          ) : (
-                            <LightbulbOff className="h-3.5 w-3.5 shrink-0 text-white/35" />
-                          )}
-                          <span
-                            className={`text-xs font-medium truncate ${
-                              isOn ? "text-amber-200" : "text-white/55"
-                            }`}
-                          >
-                            {room.name}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </GlassCard>
-
                 {/* Climate / Room Temperatures — 1/3 width */}
                 <GlassCard className="p-4">
                   <div className="flex items-center gap-3">
@@ -568,30 +651,7 @@ export default function DashboardPage() {
                 </GlassCard>
                 </div>
 
-                {/* Apple TV row */}
-                <GlassCard className="flex items-center gap-3 p-4">
-                  <Tv className="h-4 w-4 text-slate-300" />
-                  <span className="text-sm font-medium text-white">
-                    Apple TV
-                  </span>
-                  <span className="flex-1 truncate text-xs text-white/45">
-                    {loading
-                      ? "Loading..."
-                      : appleTvState === "playing"
-                        ? `Playing: ${appleTvMedia || appleTvApp || "content"}`
-                        : appleTvState === "paused"
-                          ? `Paused${appleTvMedia ? `: ${appleTvMedia}` : ""}`
-                          : appleTvState === "idle" || appleTvState === "standby"
-                            ? appleTvApp || "Idle"
-                            : appleTvState === "off"
-                              ? "Off"
-                              : "Unavailable"}
-                  </span>
-                  {appleTvState === "playing" && (
-                    <span className="flex h-2 w-2 rounded-full bg-green-400 animate-pulse" />
-                  )}
-                  <ChevronRight className="h-4 w-4 shrink-0 text-white/45" />
-                </GlassCard>
+
               </div>
             </section>
 
