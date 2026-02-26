@@ -487,9 +487,9 @@ export default function DashboardPage() {
                         <Loader2 className="h-3 w-3 animate-spin" /> Loading…
                       </div>
                     ) : (
-                      <div className="grid grid-cols-3 gap-3">
+                      <div className="flex">
                         {/* Section 1: Library counts */}
-                        <div className="relative rounded-lg border border-white/[0.06] bg-white/[0.03] p-3 transition-colors duration-300 group-hover:border-blue-400/15 group-hover:bg-blue-500/[0.04]">
+                        <div className="relative flex-1 rounded-l-lg border border-white/[0.06] bg-white/[0.03] p-3 transition-colors duration-300 group-hover:border-blue-400/15 group-hover:bg-blue-500/[0.04]">
                           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-400/20 to-transparent" />
                           <p className="mb-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-blue-400/70">
                             <Camera className="h-3 w-3" /> Library
@@ -514,8 +514,10 @@ export default function DashboardPage() {
                           )}
                         </div>
 
+                        {/* Divider */}
+                        <div className="w-px self-stretch bg-gradient-to-b from-transparent via-blue-400/20 to-transparent" />
                         {/* Section 2: Storage */}
-                        <div className="relative rounded-lg border border-white/[0.06] bg-white/[0.03] p-3 transition-colors duration-300 group-hover:border-blue-400/15 group-hover:bg-blue-500/[0.04]">
+                        <div className="relative flex-1 border-y border-white/[0.06] bg-white/[0.03] p-3 transition-colors duration-300 group-hover:border-blue-400/15 group-hover:bg-blue-500/[0.04]">
                           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-400/20 to-transparent" />
                           <p className="mb-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-blue-400/70">
                             <HardDrive className="h-3 w-3" /> Storage
@@ -534,21 +536,32 @@ export default function DashboardPage() {
                                 <span className="text-xs font-medium text-white/60">Total</span>
                                 <span className="text-sm font-bold tabular-nums text-blue-300">{immichStorage.diskSize}</span>
                               </div>
-                              {/* Storage usage bar */}
+                              {/* Storage usage bar — animated dual segment */}
                               {(() => {
                                 const usedMatch = immichStorage.diskUse.match(/([\d.]+)/);
                                 const totalMatch = immichStorage.diskSize.match(/([\d.]+)/);
                                 const usedTB = usedMatch ? parseFloat(usedMatch[1]) : 0;
                                 const totalTB = totalMatch ? parseFloat(totalMatch[1]) : 1;
                                 const usagePct = Math.min(100, (usedTB / totalTB) * 100);
+                                const freePct = 100 - usagePct;
                                 return (
-                                  <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-white/[0.06]">
-                                    <div
-                                      className={`h-full rounded-full transition-all duration-1000 ${
-                                        usagePct > 90 ? "bg-red-400/70" : usagePct > 70 ? "bg-yellow-400/60" : "bg-blue-400/50"
-                                      }`}
-                                      style={{ width: `${usagePct}%` }}
-                                    />
+                                  <div className="mt-2 space-y-1">
+                                    <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-white/[0.04]">
+                                      <div
+                                        className={`h-full transition-all duration-[1500ms] ease-out rounded-l-full ${
+                                          usagePct > 90 ? "bg-gradient-to-r from-red-500/70 to-red-400/50" : usagePct > 70 ? "bg-gradient-to-r from-yellow-500/60 to-yellow-400/40" : "bg-gradient-to-r from-blue-500/60 to-blue-400/40"
+                                        }`}
+                                        style={{ width: `${usagePct}%` }}
+                                      />
+                                      <div
+                                        className="h-full bg-gradient-to-r from-emerald-500/25 to-emerald-400/15 transition-all duration-[1500ms] ease-out rounded-r-full"
+                                        style={{ width: `${freePct}%` }}
+                                      />
+                                    </div>
+                                    <div className="flex justify-between text-[9px] tabular-nums">
+                                      <span className={usagePct > 90 ? "text-red-300/60" : usagePct > 70 ? "text-yellow-300/60" : "text-blue-300/60"}>{usagePct.toFixed(0)}% used</span>
+                                      <span className="text-emerald-300/50">{freePct.toFixed(0)}% free</span>
+                                    </div>
                                   </div>
                                 );
                               })()}
@@ -558,8 +571,10 @@ export default function DashboardPage() {
                           )}
                         </div>
 
+                        {/* Divider */}
+                        <div className="w-px self-stretch bg-gradient-to-b from-transparent via-blue-400/20 to-transparent" />
                         {/* Section 3: Top 3 job queues */}
-                        <div className="relative rounded-lg border border-white/[0.06] bg-white/[0.03] p-3 transition-colors duration-300 group-hover:border-blue-400/15 group-hover:bg-blue-500/[0.04]">
+                        <div className="relative flex-1 rounded-r-lg border border-white/[0.06] bg-white/[0.03] p-3 transition-colors duration-300 group-hover:border-blue-400/15 group-hover:bg-blue-500/[0.04]">
                           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-400/20 to-transparent" />
                           <p className="mb-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-blue-400/70">
                             <ListTodo className="h-3 w-3" /> Jobs
