@@ -8,8 +8,15 @@
 # on the Proxmox VM — no state lives here, so this node can be started or
 # stopped at any time without affecting the primary server.
 #
+# Prerequisites:
+#   Create the Docker CIFS volume once before first start (see .env.example):
+#   docker volume create --driver local --opt type=cifs \
+#     --opt device=//10.10.40.40/immich-data \
+#     "--opt" "o=addr=10.10.40.40,username=odin,password=<SMB_PASS>,uid=1000,gid=1000,file_mode=0660,dir_mode=0770" \
+#     immich-data
+#
 # Usage (CPU transcoding):
-#   cp .env.example .env    # fill in DB_*, REDIS_*, UPLOAD_LOCATION
+#   cp .env.example .env    # fill in DB_* and REDIS_*
 #   docker compose up -d
 #
 # Usage (NVIDIA NVENC hardware acceleration):
@@ -52,10 +59,15 @@ services:
       TZ: ${TZ:-Europe/Copenhagen}
 
     volumes:
-      # ${UPLOAD_LOCATION} is the HOST path on Chappie (e.g. /mnt/immich_library).
-      # It is mounted to /opt/immich/uploads to match the primary server's container path.
-      # Mount the SMB/NFS share on this host before starting the container.
-      - ${UPLOAD_LOCATION}:/opt/immich/uploads
+      # Docker-native CIFS volume mounting the full /data/immich root at /opt/immich.
+      # This gives the worker access to uploads, icloud, messages and all other paths
+      # that assets may reference — matching the primary server's full volume layout.
+      # Create with `docker volume create immich-data ...` before first start (see header).
+      - immich-data:/opt/immich
 
     # No healthcheck: the worker process has no HTTP endpoint when the API is
     # excluded. Monitor via `docker logs -f immich_worker` or Immich job queue.
+
+volumes:
+  immich-data:
+    external: true   # Created separately via docker volume create (see header)
