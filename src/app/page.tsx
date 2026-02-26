@@ -157,6 +157,19 @@ interface ImmichQueue {
   pending: number;
 }
 
+interface ImmichStats {
+  photos: number;
+  videos: number;
+  users: { name: string; photos: number; videos: number }[];
+}
+
+interface ImmichStorage {
+  diskSize: string;
+  diskUse: string;
+  diskAvailable: string;
+  diskUsagePercentage: number;
+}
+
 // ——— Helper Components ———
 
 function GlassCard({
@@ -205,6 +218,8 @@ export default function DashboardPage() {
   const [haStates, setHaStates] = useState<HAState[]>([]);
   const [loading, setLoading] = useState(true);
   const [immichQueues, setImmichQueues] = useState<ImmichQueue[]>([]);
+  const [immichStats, setImmichStats] = useState<ImmichStats | null>(null);
+  const [immichStorage, setImmichStorage] = useState<ImmichStorage | null>(null);
   const [immichLoading, setImmichLoading] = useState(true);
 
   // Keep a stable ref so the effect never re-runs
@@ -254,6 +269,8 @@ export default function DashboardPage() {
         if (res.ok) {
           const data = await res.json();
           setImmichQueues(data.queues ?? []);
+          if (data.stats) setImmichStats(data.stats);
+          if (data.storage) setImmichStorage(data.storage);
         }
       } catch {
         // ignore
@@ -382,70 +399,134 @@ export default function DashboardPage() {
                 Smart Home Devices
               </SectionLabel>
               <div className="space-y-3">
-                {/* Immich + job queues row */}
+                {/* Immich card */}
                 <a
                   href="https://immich.aser.dk"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
                   <GlassCard className="p-4 transition-colors hover:bg-white/[0.12]">
+                    {/* Header */}
                     <div className="flex items-center gap-3">
-                      <ImageIcon className="h-4 w-4 text-blue-400" />
-                      <span className="text-sm font-medium text-white">
-                        Immich
-                      </span>
-                      <span className="flex-1 text-xs text-white/30">
-                        Photo & video library
-                      </span>
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-500/20">
+                        <ImageIcon className="h-4 w-4 text-blue-400" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <span className="text-sm font-medium text-white">Immich</span>
+                        <p className="text-[11px] text-white/30">Photo & video library</p>
+                      </div>
                       <ChevronRight className="h-4 w-4 shrink-0 text-white/30" />
                     </div>
-                    {/* Top 3 job queues */}
-                    <div className="mt-3 space-y-1.5">
-                      {immichLoading ? (
-                        <div className="flex items-center gap-2 text-xs text-white/30">
-                          <Loader2 className="h-3 w-3 animate-spin" />
-                          Loading queues…
-                        </div>
-                      ) : immichQueues.length === 0 ? (
-                        <p className="text-xs text-white/30">All queues idle</p>
-                      ) : (
-                        immichQueues.map((q) => (
-                          <div
-                            key={q.name}
-                            className="flex items-center gap-2 text-xs"
-                          >
-                            <span className="w-[6.5rem] shrink-0 truncate font-medium text-white/60">
-                              {q.name}
-                            </span>
-                            {q.pending > 0 ? (
-                              <>
-                                <div className="h-1 flex-1 overflow-hidden rounded-full bg-white/10">
-                                  <div
-                                    className="h-full rounded-full bg-blue-400/60 transition-all"
-                                    style={{
-                                      width: `${Math.min(
-                                        100,
-                                        (q.active / Math.max(q.pending, 1)) * 100
-                                      )}%`,
-                                    }}
-                                  />
-                                </div>
-                                <span className="shrink-0 tabular-nums text-white/40">
-                                  {q.pending.toLocaleString()}
-                                </span>
-                              </>
-                            ) : (
-                              <span className="text-white/25">idle</span>
-                            )}
-                            {q.failed > 0 && (
-                              <span className="shrink-0 text-red-400/70">
-                                {q.failed} err
-                              </span>
-                            )}
+
+                    {immichLoading ? (
+                      <div className="mt-3 flex items-center gap-2 text-xs text-white/30">
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        Loading…
+                      </div>
+                    ) : (
+                      <>
+                        {/* Stats row */}
+                        {immichStats && (
+                          <div className="mt-3 grid grid-cols-3 gap-3">
+                            <div className="rounded-lg bg-white/[0.05] px-3 py-2 text-center">
+                              <p className="text-base font-bold tabular-nums text-white">
+                                {immichStats.photos.toLocaleString()}
+                              </p>
+                              <p className="text-[10px] font-medium uppercase tracking-wider text-white/40">
+                                Photos
+                              </p>
+                            </div>
+                            <div className="rounded-lg bg-white/[0.05] px-3 py-2 text-center">
+                              <p className="text-base font-bold tabular-nums text-white">
+                                {immichStats.videos.toLocaleString()}
+                              </p>
+                              <p className="text-[10px] font-medium uppercase tracking-wider text-white/40">
+                                Videos
+                              </p>
+                            </div>
+                            <div className="rounded-lg bg-white/[0.05] px-3 py-2 text-center">
+                              <p className="text-base font-bold tabular-nums text-white">
+                                {(immichStats.photos + immichStats.videos).toLocaleString()}
+                              </p>
+                              <p className="text-[10px] font-medium uppercase tracking-wider text-white/40">
+                                Total
+                              </p>
+                            </div>
                           </div>
-                        ))
-                      )}
-                    </div>
+                        )}
+
+                        {/* Storage bar */}
+                        {immichStorage && (
+                          <div className="mt-3">
+                            <div className="mb-1 flex items-center justify-between text-[11px]">
+                              <span className="text-white/50">
+                                {immichStorage.diskUse} / {immichStorage.diskSize}
+                              </span>
+                              <span className="font-medium tabular-nums text-white/60">
+                                {immichStorage.diskUsagePercentage.toFixed(1)}%
+                              </span>
+                            </div>
+                            <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
+                              <div
+                                className={`h-full rounded-full transition-all ${
+                                  immichStorage.diskUsagePercentage > 85
+                                    ? "bg-red-400/70"
+                                    : immichStorage.diskUsagePercentage > 70
+                                      ? "bg-amber-400/70"
+                                      : "bg-blue-400/60"
+                                }`}
+                                style={{ width: `${Math.min(100, immichStorage.diskUsagePercentage)}%` }}
+                              />
+                            </div>
+                            <p className="mt-1 text-[10px] text-white/30">
+                              {immichStorage.diskAvailable} available
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Job queues */}
+                        {immichQueues.length > 0 && (
+                          <div className="mt-3 border-t border-white/[0.06] pt-3 space-y-1.5">
+                            <p className="text-[10px] font-semibold uppercase tracking-wider text-white/35 mb-1">Active Queues</p>
+                            {immichQueues.map((q) => (
+                              <div
+                                key={q.name}
+                                className="flex items-center gap-2 text-xs"
+                              >
+                                <span className="w-[6.5rem] shrink-0 truncate font-medium text-white/60">
+                                  {q.name}
+                                </span>
+                                {q.pending > 0 ? (
+                                  <>
+                                    <div className="h-1 flex-1 overflow-hidden rounded-full bg-white/10">
+                                      <div
+                                        className="h-full rounded-full bg-blue-400/60 transition-all"
+                                        style={{
+                                          width: `${Math.min(
+                                            100,
+                                            (q.active / Math.max(q.pending, 1)) * 100
+                                          )}%`,
+                                        }}
+                                      />
+                                    </div>
+                                    <span className="shrink-0 tabular-nums text-white/40">
+                                      {q.pending.toLocaleString()}
+                                    </span>
+                                  </>
+                                ) : (
+                                  <span className="text-white/25">idle</span>
+                                )}
+                                {q.failed > 0 && (
+                                  <span className="shrink-0 text-red-400/70">
+                                    {q.failed} err
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    )}
                   </GlassCard>
                 </a>
 

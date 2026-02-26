@@ -55,39 +55,75 @@ export async function GET() {
     );
   }
 
-  try {
-    const res = await fetch(`${immichUrl}/api/jobs`, {
-      headers: { "x-api-key": immichKey },
-      cache: "no-store",
-    });
+  const headers = { "x-api-key": immichKey };
 
-    if (!res.ok) {
-      return NextResponse.json(
-        { error: "Failed to fetch Immich jobs" },
-        { status: res.status }
-      );
+  try {
+    // Fetch jobs, stats, and storage in parallel
+    const [jobsRes, statsRes, storageRes] = await Promise.all([
+      fetch(`${immichUrl}/api/jobs`, { headers, cache: "no-store" }),
+      fetch(`${immichUrl}/api/server/statistics`, { headers, cache: "no-store" }),
+      fetch(`${immichUrl}/api/server/storage`, { headers, cache: "no-store" }),
+    ]);
+
+    // Jobs
+    let queues: {
+      name: string;
+      active: number;
+      waiting: number;
+      failed: number;
+      isPaused: boolean;
+      isActive: boolean;
+      pending: number;
+    }[] = [];
+    if (jobsRes.ok) {
+      const data: Record<string, JobEntry> = await jobsRes.json();
+      queues = Object.entries(data)
+        .map(([key, entry]) => {
+          const c = entry.jobCounts;
+          return {
+            name: LABELS[key] ?? key,
+            active: c.active,
+            waiting: c.waiting,
+            failed: c.failed,
+            isPaused: entry.queueStatus.isPaused,
+            isActive: entry.queueStatus.isActive,
+            pending: c.active + c.waiting,
+          };
+        })
+        .sort((a, b) => b.pending - a.pending)
+        .slice(0, 3);
     }
 
-    const data: Record<string, JobEntry> = await res.json();
+    // Statistics (photos, videos, per-user)
+    let stats: { photos: number; videos: number; users: { name: string; photos: number; videos: number }[] } | null = null;
+    if (statsRes.ok) {
+      const s = await statsRes.json();
+      stats = {
+        photos: s.photos ?? 0,
+        videos: s.videos ?? 0,
+        users: Array.isArray(s.usageByUser)
+          ? s.usageByUser.map((u: { userName: string; photos: number; videos: number }) => ({
+              name: u.userName,
+              photos: u.photos,
+              videos: u.videos,
+            }))
+          : [],
+      };
+    }
 
-    // Build sorted list — top 3 queues by pending work (active + waiting)
-    const queues = Object.entries(data)
-      .map(([key, entry]) => {
-        const c = entry.jobCounts;
-        return {
-          name: LABELS[key] ?? key,
-          active: c.active,
-          waiting: c.waiting,
-          failed: c.failed,
-          isPaused: entry.queueStatus.isPaused,
-          isActive: entry.queueStatus.isActive,
-          pending: c.active + c.waiting,
-        };
-      })
-      .sort((a, b) => b.pending - a.pending)
-      .slice(0, 3);
+    // Storage
+    let storage: { diskSize: string; diskUse: string; diskAvailable: string; diskUsagePercentage: number } | null = null;
+    if (storageRes.ok) {
+      const st = await storageRes.json();
+      storage = {
+        diskSize: st.diskSize ?? "",
+        diskUse: st.diskUse ?? "",
+        diskAvailable: st.diskAvailable ?? "",
+        diskUsagePercentage: st.diskUsagePercentage ?? 0,
+      };
+    }
 
-    return NextResponse.json({ queues });
+    return NextResponse.json({ queues, stats, storage });
   } catch {
     return NextResponse.json(
       { error: "Cannot reach Immich" },
