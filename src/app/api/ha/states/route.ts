@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 export const dynamic = "force-dynamic";
 
 export const GET = auth(async function GET(req) {
+  console.log("[HA] GET /api/ha/states — auth:", !!req.auth);
   if (!req.auth) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -35,8 +36,10 @@ export const GET = auth(async function GET(req) {
     }
 
     const states = await res.json();
+    console.log(`[HA] Fetched ${Array.isArray(states) ? states.length : 0} entities`);
     return NextResponse.json(states);
-  } catch {
+  } catch (e) {
+    console.error("[HA] Error:", e);
     return NextResponse.json(
       { error: "Cannot reach Home Assistant" },
       { status: 502 }

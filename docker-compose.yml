@@ -11,6 +11,7 @@ services:
       - .env.local
     environment:
       - NODE_ENV=production
+      - NODE_TLS_REJECT_UNAUTHORIZED=0
       # When behind a reverse proxy, set the canonical URL:
       # - AUTH_URL=https://portal.aser.dk
       # To trust forwarded headers from your NPM proxy LXC:

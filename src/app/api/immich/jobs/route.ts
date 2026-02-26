@@ -40,6 +40,7 @@ const LABELS: Record<string, string> = {
 };
 
 export const GET = auth(async function GET(req) {
+  console.log("[Immich] GET /api/immich/jobs — auth:", !!req.auth);
   if (!req.auth) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -48,6 +49,7 @@ export const GET = auth(async function GET(req) {
   const immichKey = process.env.IMMICH_API_KEY;
 
   if (!immichUrl || !immichKey) {
+    console.log("[Immich] Not configured — url:", immichUrl, "key:", !!immichKey);
     return NextResponse.json(
       { error: "Immich not configured" },
       { status: 503 }
@@ -87,7 +89,8 @@ export const GET = auth(async function GET(req) {
       .slice(0, 3);
 
     return NextResponse.json({ queues });
-  } catch {
+  } catch (e) {
+    console.error("[Immich] Error:", e);
     return NextResponse.json(
       { error: "Cannot reach Immich" },
       { status: 502 }
