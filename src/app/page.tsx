@@ -31,6 +31,7 @@ import {
   Power,
   Search,
   Play,
+  Pause,
 } from "lucide-react";
 
 // ——— Room lights from HA ———
@@ -752,12 +753,31 @@ export default function DashboardPage() {
                           {immichQueues.length > 0 ? (
                             <>
                               <div className="space-y-1.5">
-                                {[...immichQueues]
-                                  .sort((a, b) => (b.active + b.waiting) - (a.active + a.waiting))
-                                  .slice(0, 3)
-                                  .map((q) => (
+                                {(() => {
+                                  const active = [...immichQueues].filter((q) => !q.isPaused).sort((a, b) => (b.active + b.waiting) - (a.active + a.waiting));
+                                  const paused = [...immichQueues].filter((q) => q.isPaused).sort((a, b) => (b.active + b.waiting) - (a.active + a.waiting));
+                                  return [...active, ...paused].slice(0, 3).map((q) => (
                                     <div key={q.name} className="flex items-center justify-between">
-                                      <span className="text-xs text-white/50 truncate mr-2">{q.name}</span>
+                                      <div className="flex items-center gap-1.5 truncate mr-2">
+                                        <span className={`text-xs truncate ${q.isPaused ? "text-white/30 italic" : "text-white/50"}`}>{q.name}</span>
+                                        {q.isPaused && (
+                                          <button
+                                            onClick={(e) => {
+                                              e.preventDefault();
+                                              e.stopPropagation();
+                                              fetch("/api/immich/jobs/command", {
+                                                method: "POST",
+                                                headers: { "Content-Type": "application/json" },
+                                                body: JSON.stringify({ jobName: q.key, command: "resume", force: false }),
+                                              });
+                                            }}
+                                            className="flex h-3.5 items-center gap-0.5 rounded bg-orange-500/15 px-1 text-[8px] font-bold uppercase tracking-wider text-orange-400/80 hover:bg-orange-500/25 hover:text-orange-300 active:scale-90 transition-all"
+                                            title={`Resume ${q.name}`}
+                                          >
+                                            <Pause className="h-2 w-2" /> Paused
+                                          </button>
+                                        )}
+                                      </div>
                                       <div className="flex items-center gap-1.5">
                                         {q.active > 0 ? (
                                           <span className="flex items-center gap-0.5 text-[10px] font-semibold tabular-nums text-yellow-300">
@@ -775,7 +795,8 @@ export default function DashboardPage() {
                                         )}
                                       </div>
                                     </div>
-                                  ))}
+                                  ));
+                                })()}
                               </div>
                               <div className="mt-auto flex items-center justify-between border-t border-blue-400/10 pt-1.5">
                                 <span className="text-[10px] font-semibold uppercase tracking-wider text-blue-400/50">Total</span>
