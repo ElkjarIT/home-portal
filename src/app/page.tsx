@@ -683,11 +683,9 @@ export default function DashboardPage() {
                         <Loader2 className="h-3 w-3 animate-spin" /> Loading…
                       </div>
                     ) : (
-                      <div className="space-y-2">
-                        {/* Row 1: Library + Storage side by side */}
-                        <div className="grid grid-cols-2 gap-2">
-                          {/* Library */}
-                          <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-2.5 transition-colors duration-300 group-hover:border-blue-400/15 group-hover:bg-blue-500/[0.04]">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        {/* Library */}
+                        <div className="flex flex-col rounded-lg border border-white/[0.06] bg-white/[0.03] p-2.5 transition-colors duration-300 group-hover:border-blue-400/15 group-hover:bg-blue-500/[0.04]">
                             <p className="mb-1.5 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-blue-400/70">
                               <Camera className="h-3 w-3" /> Library
                             </p>
@@ -703,7 +701,7 @@ export default function DashboardPage() {
                                     <span className="text-xs font-semibold tabular-nums text-white/85">{immichStats.videos.toLocaleString()}</span>
                                   </div>
                                 </div>
-                                <div className="mt-1.5 flex items-center justify-between border-t border-blue-400/10 pt-1.5">
+                                <div className="mt-auto flex items-center justify-between border-t border-blue-400/10 pt-1.5">
                                   <span className="text-[10px] font-semibold uppercase tracking-wider text-blue-400/50">Total</span>
                                   <span className="text-xs font-bold tabular-nums text-blue-300">{(immichStats.photos + immichStats.videos).toLocaleString()}</span>
                                 </div>
@@ -714,7 +712,7 @@ export default function DashboardPage() {
                           </div>
 
                           {/* Storage */}
-                          <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-2.5 transition-colors duration-300 group-hover:border-blue-400/15 group-hover:bg-blue-500/[0.04]">
+                          <div className="flex flex-col rounded-lg border border-white/[0.06] bg-white/[0.03] p-2.5 transition-colors duration-300 group-hover:border-blue-400/15 group-hover:bg-blue-500/[0.04]">
                             <p className="mb-1.5 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-blue-400/70">
                               <HardDrive className="h-3 w-3" /> Storage
                             </p>
@@ -730,7 +728,7 @@ export default function DashboardPage() {
                                     <span className="text-xs font-semibold tabular-nums text-white/85">{immichStorage.diskAvailable}</span>
                                   </div>
                                 </div>
-                                <div className="mt-1.5">
+                                <div className="mt-auto">
                                   <div className="flex items-center justify-between border-t border-blue-400/10 pt-1.5">
                                     <span className="text-[10px] font-semibold uppercase tracking-wider text-blue-400/50">Total</span>
                                     <span className="text-xs font-bold tabular-nums text-blue-300">{immichStorage.diskSize}</span>
@@ -769,10 +767,9 @@ export default function DashboardPage() {
                               <p className="text-xs text-white/40">—</p>
                             )}
                           </div>
-                        </div>
 
-                        {/* Row 2: Jobs — full width */}
-                        <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-2.5 transition-colors duration-300 group-hover:border-blue-400/15 group-hover:bg-blue-500/[0.04]">
+                        {/* Jobs */}
+                        <div className="flex flex-col rounded-lg border border-white/[0.06] bg-white/[0.03] p-2.5 transition-colors duration-300 group-hover:border-blue-400/15 group-hover:bg-blue-500/[0.04]">
                           <div className="mb-1.5 flex items-center gap-1.5">
                             <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-blue-400/70">
                               <ListTodo className="h-3 w-3" /> Jobs
