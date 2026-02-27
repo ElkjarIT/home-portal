@@ -12,6 +12,8 @@ const ALLOWED_CALLS: Record<string, string[]> = {
   "light/turn_off": ["light."],
   "media_player/turn_on": ["media_player."],
   "media_player/turn_off": ["media_player."],
+  "remote/turn_on": ["remote."],
+  "remote/turn_off": ["remote."],
 };
 
 export async function POST(req: NextRequest) {

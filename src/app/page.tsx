@@ -487,27 +487,33 @@ export default function DashboardPage() {
                       <Tv className="h-4 w-4 text-slate-300" />
                       <span className="text-sm font-medium text-white">Apple TV</span>
                       {/* Power toggle */}
-                      {!loading && (
-                        <button
-                          onClick={() => {
-                            const isOff = appleTvState === "off" || appleTvState === "unknown" || !appleTvState;
-                            callHaService("media_player", isOff ? "turn_on" : "turn_off", APPLE_TV_ENTITY);
-                          }}
-                          disabled={togglingEntities.has(APPLE_TV_ENTITY)}
-                          className={`ml-auto flex h-6 w-6 items-center justify-center rounded-md transition-all duration-200 active:scale-90 ${
-                            appleTvState === "off" || appleTvState === "unknown" || !appleTvState
-                              ? "bg-white/[0.06] hover:bg-white/[0.12] text-white/35 hover:text-white/60"
-                              : "bg-green-500/15 hover:bg-green-500/25 text-green-400"
-                          }`}
-                          title={appleTvState === "off" || appleTvState === "unknown" || !appleTvState ? "Turn on" : "Turn off"}
-                        >
-                          {togglingEntities.has(APPLE_TV_ENTITY) ? (
-                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                          ) : (
-                            <Power className="h-3.5 w-3.5" />
-                          )}
-                        </button>
-                      )}
+                      {!loading && (() => {
+                        const isOff = appleTvState === "off" || appleTvState === "standby" || appleTvState === "idle" || appleTvState === "unknown" || !appleTvState;
+                        return (
+                          <button
+                            onClick={() => {
+                              if (isOff) {
+                                callHaService("media_player", "turn_on", APPLE_TV_ENTITY);
+                              } else {
+                                callHaService("remote", "turn_off", "remote.stuen_tv");
+                              }
+                            }}
+                            disabled={togglingEntities.has(APPLE_TV_ENTITY) || togglingEntities.has("remote.stuen_tv")}
+                            className={`ml-auto flex h-6 w-6 items-center justify-center rounded-md transition-all duration-200 active:scale-90 ${
+                              isOff
+                                ? "bg-white/[0.06] hover:bg-white/[0.12] text-white/35 hover:text-white/60"
+                                : "bg-green-500/15 hover:bg-green-500/25 text-green-400"
+                            }`}
+                            title={isOff ? "Turn on" : "Turn off"}
+                          >
+                            {(togglingEntities.has(APPLE_TV_ENTITY) || togglingEntities.has("remote.stuen_tv")) ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <Power className="h-3.5 w-3.5" />
+                            )}
+                          </button>
+                        );
+                      })()}
                     </div>
                     {/* TV Screen */}
                     <div className={`relative flex-1 min-h-[100px] rounded-lg border-2 overflow-hidden transition-all duration-500 ${
