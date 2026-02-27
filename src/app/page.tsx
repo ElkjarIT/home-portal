@@ -980,14 +980,9 @@ export default function DashboardPage() {
                     <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-purple-500/20">
                       <CloudDownload className="h-4 w-4 text-purple-400" />
                     </div>
-                    <span className="text-sm font-medium text-white">iCloudPD</span>
-                    {icloudpdStatus && icloudpdStatus.summary.cookieWarnings > 0 && (
-                      <span className="ml-auto flex items-center gap-1 rounded-full bg-orange-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-orange-400">
-                        <AlertTriangle className="h-3 w-3" /> Cookie
-                      </span>
-                    )}
+                    <span className="text-sm font-medium text-white">iCloud Photos Sync</span>
                     {icloudpdStatus && icloudpdStatus.summary.syncing > 0 && (
-                      <span className={`${icloudpdStatus.summary.cookieWarnings > 0 ? '' : 'ml-auto'} flex items-center gap-1 rounded-full bg-blue-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue-400`}>
+                      <span className="ml-auto flex items-center gap-1 rounded-full bg-blue-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue-400">
                         <RefreshCw className="h-3 w-3 animate-spin" /> Syncing
                       </span>
                     )}
@@ -999,141 +994,165 @@ export default function DashboardPage() {
                     </div>
                   ) : !icloudpdStatus ? (
                     <p className="text-xs text-white/40">Status API unreachable</p>
-                  ) : (
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-                      {icloudpdStatus.containers.map((c) => {
-                        // Derive display name: strip "icloudpd-" prefix
-                        const displayName = c.name.replace(/^icloudpd-/, "").replace(/-/g, " ");
-                        const isShared = c.name.includes("shared");
+                  ) : (() => {
+                    // Group containers by account
+                    const accounts = new Map<string, { personal: ICloudPDContainer | null; shared: ICloudPDContainer | null }>();
+                    for (const c of icloudpdStatus.containers) {
+                      const baseName = c.name.replace(/^icloudpd-/, "").replace(/-shared$/, "");
+                      const isShared = c.name.includes("shared");
+                      if (!accounts.has(baseName)) accounts.set(baseName, { personal: null, shared: null });
+                      const entry = accounts.get(baseName)!;
+                      if (isShared) entry.shared = c; else entry.personal = c;
+                    }
 
-                        // Relative time helper
-                        const relTime = (iso: string | null) => {
-                          if (!iso) return null;
-                          try {
-                            const ms = Date.now() - new Date(iso).getTime();
-                            if (ms < 0) return "just now";
-                            const mins = Math.floor(ms / 60000);
-                            if (mins < 1) return "just now";
-                            if (mins < 60) return `${mins}m ago`;
-                            const hrs = Math.floor(mins / 60);
-                            if (hrs < 24) return `${hrs}h ago`;
-                            return `${Math.floor(hrs / 24)}d ago`;
-                          } catch { return null; }
-                        };
+                    // Relative time helper
+                    const relTime = (iso: string | null) => {
+                      if (!iso) return null;
+                      try {
+                        const ms = Date.now() - new Date(iso).getTime();
+                        if (ms < 0) return "just now";
+                        const mins = Math.floor(ms / 60000);
+                        if (mins < 1) return "just now";
+                        if (mins < 60) return `${mins}m ago`;
+                        const hrs = Math.floor(mins / 60);
+                        if (hrs < 24) return `${hrs}h ago`;
+                        return `${Math.floor(hrs / 24)}d ago`;
+                      } catch { return null; }
+                    };
 
-                        // Next sync countdown
-                        const nextIn = (() => {
-                          if (!c.logs.nextSyncAt) return null;
-                          try {
-                            const secs = (new Date(c.logs.nextSyncAt).getTime() - Date.now()) / 1000;
-                            if (secs <= 0) return "soon";
-                            const h = Math.floor(secs / 3600);
-                            const m = Math.floor((secs % 3600) / 60);
-                            return h > 0 ? `${h}h ${m}m` : `${m}m`;
-                          } catch { return null; }
-                        })();
+                    // Next sync countdown
+                    const nextIn = (iso: string | null) => {
+                      if (!iso) return null;
+                      try {
+                        const secs = (new Date(iso).getTime() - Date.now()) / 1000;
+                        if (secs <= 0) return "soon";
+                        const h = Math.floor(secs / 3600);
+                        const m = Math.floor((secs % 3600) / 60);
+                        return h > 0 ? `${h}h ${m}m` : `${m}m`;
+                      } catch { return null; }
+                    };
 
-                        return (
-                          <div
-                            key={c.name}
-                            className={`relative rounded-lg border p-2.5 transition-colors ${
-                              c.logs.syncing
-                                ? "border-blue-400/20 bg-blue-500/[0.06]"
-                                : c.logs.cookieWarning
-                                  ? "border-orange-400/20 bg-orange-500/[0.04]"
-                                  : !c.running
-                                    ? "border-red-400/15 bg-red-500/[0.03]"
-                                    : "border-white/[0.06] bg-white/[0.03]"
-                            }`}
-                          >
-                            {/* Status dot */}
-                            <div className="flex items-center gap-1.5 mb-1.5">
-                              <span className={`inline-block h-1.5 w-1.5 rounded-full ${
-                                c.logs.syncing
-                                  ? "bg-blue-400 animate-pulse"
-                                  : c.running
-                                    ? "bg-emerald-400"
-                                    : "bg-red-400"
-                              }`} />
-                              <span className="text-xs font-medium text-white/80 capitalize truncate">{displayName}</span>
-                              {isShared && (
-                                <span className="text-[8px] uppercase tracking-wider text-white/30 font-bold">shared</span>
-                              )}
-                            </div>
+                    return (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {Array.from(accounts.entries()).map(([name, { personal, shared }]) => {
+                          const primary = personal ?? shared;
+                          if (!primary) return null;
+                          const displayName = name.charAt(0).toUpperCase() + name.slice(1);
+                          const allRunning = [personal, shared].filter(Boolean).every(c => c!.running);
+                          const anySyncing = [personal, shared].filter(Boolean).some(c => c!.logs.syncing);
+                          const cookieDays = primary.logs.cookieDaysLeft;
+                          const cookieWarn = primary.logs.cookieWarning;
 
-                            {/* Last sync info */}
-                            <div className="space-y-1">
-                              {c.logs.syncing ? (
-                                <div className="flex items-center gap-1">
-                                  <RefreshCw className="h-2.5 w-2.5 animate-spin text-blue-400" />
-                                  <span className="text-[10px] text-blue-300">
-                                    Syncing{c.logs.totalInCloud ? ` (${c.logs.totalInCloud.toLocaleString()} items)` : "…"}
-                                  </span>
+                          // Aggregate totals
+                          const totalItems = [personal, shared].reduce((sum, c) => sum + (c?.logs.totalInCloud ?? 0), 0);
+                          const totalDownloaded = [personal, shared].reduce((sum, c) => sum + (c?.logs.filesDownloaded ?? 0), 0);
+                          const totalDeleted = [personal, shared].reduce((sum, c) => sum + (c?.logs.filesDeleted ?? 0), 0);
+                          const lastSync = personal?.logs.lastSyncEnd ?? shared?.logs.lastSyncEnd;
+                          const nextSync = personal?.logs.nextSyncAt ?? shared?.logs.nextSyncAt;
+                          const hasErrors = [personal, shared].some(c => c && c.logs.errors.length > 0);
+
+                          return (
+                            <div
+                              key={name}
+                              className={`relative rounded-lg border p-3 transition-colors ${
+                                anySyncing
+                                  ? "border-blue-400/20 bg-blue-500/[0.06]"
+                                  : cookieWarn
+                                    ? "border-orange-400/20 bg-orange-500/[0.04]"
+                                    : !allRunning
+                                      ? "border-red-400/15 bg-red-500/[0.03]"
+                                      : "border-white/[0.06] bg-white/[0.03]"
+                              }`}
+                            >
+                              {/* Account header */}
+                              <div className="flex items-center gap-2 mb-2.5">
+                                <span className={`inline-block h-2 w-2 rounded-full ${
+                                  anySyncing ? "bg-blue-400 animate-pulse" : allRunning ? "bg-emerald-400" : "bg-red-400"
+                                }`} />
+                                <span className="text-sm font-semibold text-white">{displayName}</span>
+                                {/* Container count */}
+                                <span className="text-[10px] text-white/30">
+                                  {[personal, shared].filter(Boolean).length === 2 ? "Personal + Shared" : "Personal"}
+                                </span>
+                              </div>
+
+                              {/* Key info rows */}
+                              <div className="space-y-2">
+                                {/* Last sync row */}
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs text-white/45">Last Sync</span>
+                                  <div className="flex items-center gap-1.5">
+                                    {anySyncing ? (
+                                      <span className="flex items-center gap-1 text-xs font-medium text-blue-400">
+                                        <RefreshCw className="h-3 w-3 animate-spin" /> Running now
+                                      </span>
+                                    ) : lastSync ? (
+                                      <>
+                                        <span className="text-xs font-medium text-white/75">{relTime(lastSync)}</span>
+                                        {totalDownloaded > 0 && (
+                                          <span className="rounded bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-bold text-emerald-400">
+                                            +{totalDownloaded} new
+                                          </span>
+                                        )}
+                                        {totalDeleted > 0 && (
+                                          <span className="rounded bg-red-500/15 px-1.5 py-0.5 text-[10px] font-bold text-red-400">
+                                            -{totalDeleted} deleted
+                                          </span>
+                                        )}
+                                      </>
+                                    ) : (
+                                      <span className="text-xs text-white/30">—</span>
+                                    )}
+                                  </div>
                                 </div>
-                              ) : c.logs.lastSyncEnd ? (
-                                <div className="flex items-center gap-1">
-                                  <CheckCircle2 className="h-2.5 w-2.5 text-emerald-400/60" />
-                                  <span className="text-[10px] text-white/50">
-                                    {relTime(c.logs.lastSyncEnd)}
-                                  </span>
-                                  {c.logs.filesDownloaded > 0 && (
-                                    <span className="text-[10px] text-emerald-400/70">
-                                      +{c.logs.filesDownloaded}
+
+                                {/* iCloud library size */}
+                                {totalItems > 0 && (
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-xs text-white/45">iCloud Photos</span>
+                                    <span className="text-xs font-medium tabular-nums text-white/75">{totalItems.toLocaleString()}</span>
+                                  </div>
+                                )}
+
+                                {/* Next sync */}
+                                {!anySyncing && nextSync && (
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-xs text-white/45">Next Sync</span>
+                                    <span className="text-xs text-white/55">{nextIn(nextSync)}</span>
+                                  </div>
+                                )}
+
+                                {/* Cookie / status row */}
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs text-white/45">Cookie</span>
+                                  {cookieDays !== null ? (
+                                    <span className={`text-xs font-medium ${
+                                      cookieWarn ? "text-orange-400" : cookieDays <= 14 ? "text-yellow-300/70" : "text-emerald-400/70"
+                                    }`}>
+                                      {cookieWarn && <AlertTriangle className="inline h-3 w-3 mr-1 -translate-y-px" />}
+                                      {cookieDays} days left
                                     </span>
-                                  )}
-                                  {c.logs.totalTime && (
-                                    <span className="text-[10px] text-white/30">
-                                      ({c.logs.totalTime})
-                                    </span>
-                                  )}
-                                </div>
-                              ) : (
-                                <span className="text-[10px] text-white/30">No sync data</span>
-                              )}
-
-                              {/* iCloud library size */}
-                              {c.logs.totalInCloud && !c.logs.syncing && (
-                                <div className="flex items-center gap-1">
-                                  <ImageIcon className="h-2.5 w-2.5 text-white/25" />
-                                  <span className="text-[10px] text-white/35">{c.logs.totalInCloud.toLocaleString()} items</span>
-                                </div>
-                              )}
-
-                              {/* Next sync */}
-                              {nextIn && !c.logs.syncing && (
-                                <div className="flex items-center gap-1">
-                                  <Clock className="h-2.5 w-2.5 text-white/25" />
-                                  <span className="text-[10px] text-white/35">Next: {nextIn}</span>
-                                </div>
-                              )}
-
-                              {/* Cookie status */}
-                              {c.logs.cookieDaysLeft !== null && (
-                                <div className="flex items-center gap-1">
-                                  {c.logs.cookieWarning ? (
-                                    <AlertTriangle className="h-2.5 w-2.5 text-orange-400" />
                                   ) : (
-                                    <Clock className="h-2.5 w-2.5 text-white/20" />
+                                    <span className="text-xs text-white/30">—</span>
                                   )}
-                                  <span className={`text-[10px] ${c.logs.cookieWarning ? 'text-orange-300/80' : 'text-white/30'}`}>
-                                    Cookie: {c.logs.cookieDaysLeft}d
-                                  </span>
                                 </div>
-                              )}
 
-                              {/* Container stopped */}
-                              {!c.running && (
-                                <div className="flex items-center gap-1">
-                                  <Circle className="h-2.5 w-2.5 text-red-400/60" />
-                                  <span className="text-[10px] text-red-300/70">Stopped</span>
-                                </div>
-                              )}
+                                {/* Errors indicator */}
+                                {hasErrors && (
+                                  <div className="flex items-center gap-1 rounded bg-red-500/10 px-2 py-1">
+                                    <AlertTriangle className="h-3 w-3 text-red-400/70 shrink-0" />
+                                    <span className="text-[10px] text-red-300/70 truncate">
+                                      {[personal, shared].flatMap(c => c?.logs.errors ?? []).pop()?.replace(/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\s+ERROR\s+/, "")}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
                 </GlassCard>
 
               </div>
