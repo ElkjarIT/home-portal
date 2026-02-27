@@ -469,9 +469,7 @@ export default function DashboardPage() {
               <SectionLabel icon={Wifi} iconColor="text-sky-400">
                 Smart Home Devices
               </SectionLabel>
-              <div className="space-y-2">
-                {/* Room Lights + Climate side by side */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 justify-center">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   {/* Room Lights */}
                   <GlassCard className="p-3">
                     <div className="flex items-center gap-2 mb-2">
@@ -580,10 +578,7 @@ export default function DashboardPage() {
                       })}
                     </div>
                   </GlassCard>
-                </div>
 
-                {/* Apple TV + Immich side by side */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 justify-center">
                   {/* Apple TV — compact */}
                   <GlassCard className="p-3">
                     <div className="flex items-center gap-2">
@@ -669,7 +664,7 @@ export default function DashboardPage() {
                   href="https://immich.aser.dk"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group sm:col-span-1 lg:col-span-2"
+                  className="group sm:col-span-3"
                 >
                   <GlassCard className="h-full p-3 transition-all duration-300 hover:bg-white/[0.12] hover:shadow-[0_0_24px_rgba(59,130,246,0.08)]">
                     {/* Header */}
@@ -915,10 +910,9 @@ export default function DashboardPage() {
                     )}
                   </GlassCard>
                 </a>
-                </div>
 
                 {/* iCloudPD card — full width */}
-                <GlassCard className="p-3">
+                <GlassCard className="p-3 sm:col-span-3">
                   <div className="mb-2 flex items-center gap-2">
                     <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-purple-500/20">
                       <CloudDownload className="h-4 w-4 text-purple-400" />
@@ -1151,7 +1145,7 @@ export default function DashboardPage() {
                     })()}
 
                     {/* Bilskirner + 7-day chart side by side */}
-                    <div className="mb-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 justify-center">
+                    <div className="mb-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                     {/* EV Charger — Bilskirner (hero section) */}
                     {(() => {
                       const chargingBin = haStates.find((e) => e.entity_id === "binary_sensor.bilskirner_charging");
@@ -1462,7 +1456,7 @@ export default function DashboardPage() {
                     </div>
 
                     {/* Today's usage + Live power side by side */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 justify-center">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                     {/* Today's usage per device */}
                     {deviceToday.length > 0 && (
                       <div className="rounded-lg bg-white/[0.03] p-2.5">
@@ -1521,7 +1515,7 @@ export default function DashboardPage() {
             </section>
 
             {/* — PRINTER + INFRASTRUCTURE (side by side) — */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 justify-center">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <section>
               <SectionLabel icon={Printer} iconColor="text-orange-400">
                 Canon Printer
