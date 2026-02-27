@@ -70,6 +70,7 @@ export async function GET() {
       name: string;
       active: number;
       waiting: number;
+      paused: number;
       failed: number;
       isPaused: boolean;
       isActive: boolean;
@@ -85,10 +86,11 @@ export async function GET() {
             name: LABELS[key] ?? key,
             active: c.active,
             waiting: c.waiting,
+            paused: c.paused,
             failed: c.failed,
             isPaused: entry.queueStatus.isPaused,
             isActive: entry.queueStatus.isActive,
-            pending: c.active + c.waiting,
+            pending: c.active + c.waiting + c.paused,
           };
         })
         .sort((a, b) => b.pending - a.pending);

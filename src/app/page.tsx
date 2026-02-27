@@ -124,6 +124,7 @@ interface ImmichQueue {
   name: string;
   active: number;
   waiting: number;
+  paused: number;
   failed: number;
   isPaused: boolean;
   isActive: boolean;
@@ -792,8 +793,8 @@ export default function DashboardPage() {
                                   // Tier 2: paused with pending jobs
                                   // Tier 3: empty queues (no pending), active first then paused
                                   const sorted = [...immichQueues].sort((a, b) => {
-                                    const aPending = a.active + a.waiting;
-                                    const bPending = b.active + b.waiting;
+                                    const aPending = a.active + a.waiting + a.paused;
+                                    const bPending = b.active + b.waiting + b.paused;
                                     const aTier = aPending > 0 ? (a.isPaused ? 2 : 1) : (a.isPaused ? 4 : 3);
                                     const bTier = bPending > 0 ? (b.isPaused ? 2 : 1) : (b.isPaused ? 4 : 3);
                                     if (aTier !== bTier) return aTier - bTier;
@@ -817,9 +818,9 @@ export default function DashboardPage() {
                                             className="flex h-3.5 items-center gap-0.5 rounded bg-orange-500/15 px-1 text-[8px] font-bold uppercase tracking-wider text-orange-400/80 hover:bg-orange-500/25 hover:text-orange-300 active:scale-90 transition-all"
                                             title={`Resume ${q.name}`}
                                           >
-                                            <Play className="h-2 w-2" /> Paused
+                                            <Play className="h-2 w-2" /> {q.paused > 0 ? q.paused.toLocaleString() : "Paused"}
                                           </button>
-                                        ) : (q.active + q.waiting) > 0 ? (
+                                        ) : (q.active + q.waiting + q.paused) > 0 ? (
                                           <button
                                             onClick={(e) => {
                                               e.preventDefault();
@@ -923,6 +924,8 @@ export default function DashboardPage() {
                       );
                     })()}
 
+                    {/* Bilskirner + 7-day chart side by side */}
+                    <div className="mb-3 grid grid-cols-1 gap-2 lg:grid-cols-2">
                     {/* EV Charger — Bilskirner (hero section) */}
                     {(() => {
                       const chargingBin = haStates.find((e) => e.entity_id === "binary_sensor.bilskirner_charging");
@@ -953,7 +956,7 @@ export default function DashboardPage() {
                       const statusLabel = statusText === "disconnected" ? "Disconnected" : statusText === "stopped" ? "Stopped" : statusText === "complete" ? "Complete" : statusText.charAt(0).toUpperCase() + statusText.slice(1);
                       const chargeEnabled = chargeSwitch?.state === "on";
                       return (
-                        <div className={`mb-3 rounded-xl border-2 p-3 ${
+                        <div className={`rounded-xl border-2 p-3 ${
                           isCharging
                             ? "border-green-400/30 bg-gradient-to-br from-green-500/[0.08] via-emerald-500/[0.04] to-transparent shadow-[0_0_24px_rgba(74,222,128,0.08)]"
                             : "border-white/[0.12] bg-gradient-to-br from-white/[0.06] via-white/[0.03] to-transparent"
@@ -980,20 +983,15 @@ export default function DashboardPage() {
                                 {togglingEntities.has("switch.bilskirner_charge") ? (
                                   <Loader2 className="h-3 w-3 animate-spin" />
                                 ) : chargeEnabled ? (
-                                  <><Square className="h-2.5 w-2.5 fill-current" /> Stop</>
+                                  <><Square className="h-2.5 w-2.5 fill-current" /> Stop Charge</>
                                 ) : (
-                                  <><Play className="h-2.5 w-2.5 fill-current" /> Start</>
+                                  <><Play className="h-2.5 w-2.5 fill-current" /> Start Charge</>
                                 )}
                               </button>
                             )}
-                            {isCharging && statusText === "disconnected" && (
-                              <span className="ml-auto flex items-center gap-1 animate-pulse text-green-400">
+                            {isCharging && (
+                              <span className={`${statusText === "disconnected" ? "ml-auto" : ""} flex items-center gap-1 animate-pulse text-green-400`}>
                                 <Zap className="h-3.5 w-3.5" /> CHARGING
-                              </span>
-                            )}
-                            {isCharging && statusText !== "disconnected" && (
-                              <span className="flex items-center gap-1 animate-pulse text-green-400">
-                                <Zap className="h-3.5 w-3.5" />
                               </span>
                             )}
                           </div>
@@ -1127,7 +1125,7 @@ export default function DashboardPage() {
                       const avgKwh = last7.reduce((s, d) => s + d.kwh, 0) / last7.length;
                       const todayStr = new Date().toISOString().split("T")[0];
                       return (
-                        <div className="mb-3 rounded-lg bg-white/[0.03] p-2.5">
+                        <div className="rounded-lg bg-white/[0.03] p-2.5">
                           <div className="mb-2 flex items-center justify-between">
                             <p className="text-xs font-semibold uppercase tracking-wider text-white/50">
                               <BarChart3 className="mr-1 inline h-3 w-3 -translate-y-px" />
@@ -1187,6 +1185,7 @@ export default function DashboardPage() {
                         </div>
                       );
                     })()}
+                    </div>
 
                     {/* Today's usage + Live power side by side */}
                     <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
