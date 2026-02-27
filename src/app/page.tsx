@@ -184,6 +184,8 @@ interface ICloudPDContainer {
     errors: string[];
     syncing: boolean;
     user: string | null;
+    localSizeBytes: number | null;
+    localFileCount: number | null;
   };
 }
 
@@ -1049,13 +1051,36 @@ export default function DashboardPage() {
                                   </div>
                                 </div>
 
-                                {/* iCloud library size */}
+                                {/* Cloud library size */}
                                 {totalItems > 0 && (
                                   <div className="flex items-center justify-between">
-                                    <span className="text-xs text-white/45">Library Size</span>
-                                    <span className="text-xs font-medium tabular-nums text-white/75">{totalItems.toLocaleString()} items in iCloud</span>
+                                    <span className="text-xs text-white/45">Cloud Library</span>
+                                    <span className="text-xs font-medium tabular-nums text-white/75">{totalItems.toLocaleString()} items</span>
                                   </div>
                                 )}
+
+                                {/* Local library size */}
+                                {(() => {
+                                  const totalLocalBytes = [personal, shared].reduce((sum, c) => sum + (c?.logs.localSizeBytes ?? 0), 0);
+                                  const totalLocalFiles = [personal, shared].reduce((sum, c) => sum + (c?.logs.localFileCount ?? 0), 0);
+                                  if (!totalLocalBytes && !totalLocalFiles) return null;
+                                  const fmt = (b: number) => {
+                                    if (b >= 1e12) return `${(b / 1e12).toFixed(2)} TB`;
+                                    if (b >= 1e9) return `${(b / 1e9).toFixed(1)} GB`;
+                                    if (b >= 1e6) return `${(b / 1e6).toFixed(0)} MB`;
+                                    return `${(b / 1e3).toFixed(0)} KB`;
+                                  };
+                                  return (
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-xs text-white/45">Local Library</span>
+                                      <span className="text-xs font-medium tabular-nums text-white/75">
+                                        {totalLocalFiles > 0 ? `${totalLocalFiles.toLocaleString()} files` : ""}
+                                        {totalLocalFiles > 0 && totalLocalBytes > 0 && <span className="text-white/30"> · </span>}
+                                        {totalLocalBytes > 0 ? fmt(totalLocalBytes) : ""}
+                                      </span>
+                                    </div>
+                                  );
+                                })()}
 
                                 {/* Next sync */}
                                 {!anySyncing && nextSync && (
