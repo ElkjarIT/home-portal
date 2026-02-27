@@ -463,7 +463,7 @@ export default function DashboardPage() {
         </GlassCard>
 
         {/* ——— Main content ——— */}
-        <div className="mx-auto max-w-6xl space-y-3 flex flex-col items-center">
+        <div className="mx-auto max-w-6xl space-y-3">
             {/* — SMART HOME DEVICES — */}
             <section>
               <SectionLabel icon={Wifi} iconColor="text-sky-400">
@@ -584,11 +584,55 @@ export default function DashboardPage() {
 
                 {/* Apple TV + Immich side by side */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 justify-center">
-                  {/* Apple TV */}
-                  <GlassCard className="p-3 flex flex-col">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Tv className="h-4 w-4 text-slate-300" />
-                      <span className="text-sm font-medium text-white">Apple TV</span>
+                  {/* Apple TV — compact */}
+                  <GlassCard className="p-3">
+                    <div className="flex items-center gap-2">
+                      {/* Status indicator dot + icon */}
+                      <div className={`relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors duration-500 ${
+                        appleTvState === "playing"
+                          ? "bg-green-500/15"
+                          : appleTvState === "paused"
+                            ? "bg-yellow-500/15"
+                            : appleTvState === "idle" || appleTvState === "standby"
+                              ? "bg-purple-500/15"
+                              : "bg-white/[0.04]"
+                      }`}>
+                        <Tv className={`h-4 w-4 transition-colors duration-500 ${
+                          appleTvState === "playing" ? "text-green-400" : appleTvState === "paused" ? "text-yellow-400" : appleTvState === "idle" || appleTvState === "standby" ? "text-purple-400" : "text-white/25"
+                        }`} />
+                        {(appleTvState === "playing" || appleTvState === "paused" || appleTvState === "idle" || appleTvState === "standby") && (
+                          <span className={`absolute -top-0.5 -right-0.5 flex h-2 w-2`}>
+                            {appleTvState === "playing" && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400/50" />}
+                            <span className={`relative inline-flex rounded-full h-2 w-2 ${
+                              appleTvState === "playing" ? "bg-green-400" : appleTvState === "paused" ? "bg-yellow-400/70" : "bg-purple-400/60"
+                            }`} />
+                          </span>
+                        )}
+                      </div>
+                      {/* Info */}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-sm font-medium text-white">Apple TV</span>
+                          {loading ? (
+                            <Loader2 className="h-3 w-3 animate-spin text-white/30" />
+                          ) : (
+                            <span className={`text-[10px] font-bold uppercase tracking-widest ${
+                              appleTvState === "playing" ? "text-green-400/70" : appleTvState === "paused" ? "text-yellow-400/60" : appleTvState === "idle" || appleTvState === "standby" ? "text-purple-300/50" : "text-white/20"
+                            }`}>
+                              {appleTvState === "playing" ? "Streaming" : appleTvState === "paused" ? "Paused" : appleTvState === "idle" || appleTvState === "standby" ? "Idle" : "Off"}
+                            </span>
+                          )}
+                        </div>
+                        {(appleTvMedia || appleTvApp) && (appleTvState === "playing" || appleTvState === "paused") && (
+                          <p className="truncate text-xs text-white/50 mt-0.5">
+                            {appleTvMedia || appleTvApp}
+                            {appleTvMedia && appleTvApp && <span className="text-white/25"> · {appleTvApp}</span>}
+                          </p>
+                        )}
+                        {appleTvApp && (appleTvState === "idle" || appleTvState === "standby") && (
+                          <p className="truncate text-[10px] text-white/30 mt-0.5">{appleTvApp}</p>
+                        )}
+                      </div>
                       {/* Power toggle */}
                       {!loading && (() => {
                         const isOff = appleTvState === "off" || appleTvState === "unknown" || !appleTvState;
@@ -602,9 +646,9 @@ export default function DashboardPage() {
                               }
                             }}
                             disabled={togglingEntities.has(APPLE_TV_ENTITY) || togglingEntities.has("remote.stuen_tv")}
-                            className={`ml-auto flex h-6 w-6 items-center justify-center rounded-md transition-all duration-200 active:scale-90 ${
+                            className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-all duration-200 active:scale-90 ${
                               isOff
-                                ? "bg-white/[0.06] hover:bg-white/[0.12] text-white/35 hover:text-white/60"
+                                ? "bg-white/[0.06] hover:bg-white/[0.12] text-white/30 hover:text-white/60"
                                 : "bg-green-500/15 hover:bg-green-500/25 text-green-400"
                             }`}
                             title={isOff ? "Turn on" : "Turn off"}
@@ -618,108 +662,14 @@ export default function DashboardPage() {
                         );
                       })()}
                     </div>
-                    {/* TV Screen */}
-                    <div className={`relative flex-1 min-h-[100px] rounded-lg border-2 overflow-hidden transition-all duration-500 ${
-                      appleTvState === "playing"
-                        ? "border-green-400/30 animate-tv-glow-playing"
-                        : appleTvState === "paused"
-                          ? "border-yellow-400/25 shadow-[0_0_10px_rgba(250,204,21,0.08)]"
-                          : appleTvState === "idle" || appleTvState === "standby"
-                            ? "border-purple-400/20 animate-tv-glow-idle"
-                            : "border-white/[0.05]"
-                    }`}>
-                      {/* Screen background */}
-                      <div className={`absolute inset-0 transition-all duration-700 ${
-                        appleTvState === "playing"
-                          ? "bg-gradient-to-br from-green-900/30 via-emerald-800/20 to-teal-900/30 bg-[length:200%_200%] animate-tv-color-shift"
-                          : appleTvState === "paused"
-                            ? "bg-gradient-to-br from-yellow-900/20 via-amber-800/15 to-orange-900/20"
-                            : appleTvState === "idle" || appleTvState === "standby"
-                              ? "bg-gradient-to-br from-indigo-900/25 via-purple-900/20 to-slate-900/30 bg-[length:300%_300%] animate-tv-idle-drift"
-                              : "bg-black/40"
-                      }`} />
-                      {/* Scanline effect when playing */}
-                      {appleTvState === "playing" && (
-                        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                          <div className="animate-tv-scanline absolute inset-x-0 h-[2px] bg-white/[0.04]" />
-                        </div>
-                      )}
-                      {/* Floating orbs when idle/standby — screensaver effect */}
-                      {(appleTvState === "idle" || appleTvState === "standby") && (
-                        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                          <div className="absolute h-16 w-16 rounded-full bg-purple-500/10 blur-xl animate-tv-orb-1" />
-                          <div className="absolute h-12 w-12 rounded-full bg-indigo-400/10 blur-xl animate-tv-orb-2" />
-                          <div className="absolute h-10 w-10 rounded-full bg-blue-500/8 blur-lg animate-tv-orb-3" />
-                        </div>
-                      )}
-                      {/* Static noise when off */}
-                      {(appleTvState === "off" || appleTvState === "unknown") && (
-                        <div className="absolute inset-0 animate-tv-static" style={{
-                          backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E\")",
-                          backgroundSize: "100px 100px"
-                        }} />
-                      )}
-                      {/* Center content */}
-                      <div className="relative flex flex-col items-center justify-center h-full min-h-[100px] p-3">
-                        {loading ? (
-                          <Loader2 className="h-5 w-5 animate-spin text-white/30" />
-                        ) : appleTvState === "playing" ? (
-                          <>
-                            <div className="flex items-center gap-1.5 mb-1.5">
-                              <span className="flex h-2 w-2 rounded-full bg-green-400 animate-pulse" />
-                              <span className="text-[10px] font-bold uppercase tracking-widest text-green-400/80">Streaming</span>
-                            </div>
-                            <p className="text-xs font-semibold text-white/90 text-center truncate max-w-full">
-                              {appleTvMedia || "Playing"}
-                            </p>
-                            {appleTvApp && (
-                              <p className="text-[10px] text-white/40 mt-0.5">{appleTvApp}</p>
-                            )}
-                          </>
-                        ) : appleTvState === "paused" ? (
-                          <>
-                            <div className="flex items-center gap-1.5 mb-1.5">
-                              <span className="flex h-2 w-2 rounded-full bg-yellow-400/70" />
-                              <span className="text-[10px] font-bold uppercase tracking-widest text-yellow-400/70">Paused</span>
-                            </div>
-                            {appleTvMedia && (
-                              <p className="text-xs text-white/60 text-center truncate max-w-full">{appleTvMedia}</p>
-                            )}
-                          </>
-                        ) : appleTvState === "idle" || appleTvState === "standby" ? (
-                          <>
-                            <div className="relative mb-1.5">
-                              <Tv className="h-5 w-5 text-purple-300/50" />
-                              <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400/40" />
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-400/70" />
-                              </span>
-                            </div>
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-purple-300/60">Idle</span>
-                            {appleTvApp && (
-                              <p className="text-[10px] text-white/30 mt-0.5">{appleTvApp}</p>
-                            )}
-                          </>
-                        ) : (
-                          <>
-                            <div className="h-5 w-5 rounded-full border border-white/10 flex items-center justify-center mb-1">
-                              <Power className="h-3 w-3 text-white/15" />
-                            </div>
-                            <span className="text-[10px] text-white/25">Off</span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                    {/* TV stand */}
-                    <div className="mx-auto mt-1.5 h-1 w-12 rounded-full bg-white/[0.06]" />
                   </GlassCard>
 
-                {/* Immich card — 2/3 */}
+                {/* Immich card — spans 2 cols on sm+ */}
                 <a
                   href="https://immich.aser.dk"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group"
+                  className="group sm:col-span-1 lg:col-span-2"
                 >
                   <GlassCard className="h-full p-3 transition-all duration-300 hover:bg-white/[0.12] hover:shadow-[0_0_24px_rgba(59,130,246,0.08)]">
                     {/* Header */}
@@ -736,102 +686,97 @@ export default function DashboardPage() {
                         <Loader2 className="h-3 w-3 animate-spin" /> Loading…
                       </div>
                     ) : (
-                      <div className="flex">
-                        {/* Section 1: Library counts */}
-                        <div className="relative flex-1 flex flex-col rounded-l-lg border border-white/[0.06] bg-white/[0.03] p-3 transition-colors duration-300 group-hover:border-blue-400/15 group-hover:bg-blue-500/[0.04]">
-                          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-400/20 to-transparent" />
-                          <p className="mb-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-blue-400/70">
-                            <Camera className="h-3 w-3" /> Library
-                          </p>
-                          {immichStats ? (
-                            <>
-                              <div className="space-y-1.5">
-                                <div className="flex items-center justify-between">
-                                  <span className="text-xs text-white/50">Photos</span>
-                                  <span className="text-xs font-semibold tabular-nums text-white/85">{immichStats.photos.toLocaleString()}</span>
+                      <div className="space-y-2">
+                        {/* Row 1: Library + Storage side by side */}
+                        <div className="grid grid-cols-2 gap-2">
+                          {/* Library */}
+                          <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-2.5 transition-colors duration-300 group-hover:border-blue-400/15 group-hover:bg-blue-500/[0.04]">
+                            <p className="mb-1.5 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-blue-400/70">
+                              <Camera className="h-3 w-3" /> Library
+                            </p>
+                            {immichStats ? (
+                              <>
+                                <div className="space-y-1">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-xs text-white/50">Photos</span>
+                                    <span className="text-xs font-semibold tabular-nums text-white/85">{immichStats.photos.toLocaleString()}</span>
+                                  </div>
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-xs text-white/50">Videos</span>
+                                    <span className="text-xs font-semibold tabular-nums text-white/85">{immichStats.videos.toLocaleString()}</span>
+                                  </div>
                                 </div>
-                                <div className="flex items-center justify-between">
-                                  <span className="text-xs text-white/50">Videos</span>
-                                  <span className="text-xs font-semibold tabular-nums text-white/85">{immichStats.videos.toLocaleString()}</span>
-                                </div>
-                              </div>
-                              <div className="mt-auto flex items-center justify-between border-t border-blue-400/10 pt-1.5">
-                                <span className="text-[10px] font-semibold uppercase tracking-wider text-blue-400/50">Total</span>
-                                <span className="text-xs font-bold tabular-nums text-blue-300">{(immichStats.photos + immichStats.videos).toLocaleString()}</span>
-                              </div>
-                            </>
-                          ) : (
-                            <p className="text-xs text-white/40">—</p>
-                          )}
-                        </div>
-
-                        {/* Divider */}
-                        <div className="w-px self-stretch bg-gradient-to-b from-transparent via-blue-400/20 to-transparent" />
-                        {/* Section 2: Storage */}
-                        <div className="relative flex-1 flex flex-col border-y border-white/[0.06] bg-white/[0.03] p-3 transition-colors duration-300 group-hover:border-blue-400/15 group-hover:bg-blue-500/[0.04]">
-                          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-400/20 to-transparent" />
-                          <p className="mb-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-blue-400/70">
-                            <HardDrive className="h-3 w-3" /> Storage
-                          </p>
-                          {immichStorage ? (
-                            <>
-                              <div className="space-y-1.5">
-                                <div className="flex items-center justify-between">
-                                  <span className="text-xs text-white/50">Used</span>
-                                  <span className="text-xs font-semibold tabular-nums text-white/85">{immichStorage.diskUse}</span>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                  <span className="text-xs text-white/50">Free</span>
-                                  <span className="text-xs font-semibold tabular-nums text-white/85">{immichStorage.diskAvailable}</span>
-                                </div>
-                              </div>
-                              <div className="mt-auto">
-                                <div className="flex items-center justify-between border-t border-blue-400/10 pt-1.5">
+                                <div className="mt-1.5 flex items-center justify-between border-t border-blue-400/10 pt-1.5">
                                   <span className="text-[10px] font-semibold uppercase tracking-wider text-blue-400/50">Total</span>
-                                  <span className="text-xs font-bold tabular-nums text-blue-300">{immichStorage.diskSize}</span>
+                                  <span className="text-xs font-bold tabular-nums text-blue-300">{(immichStats.photos + immichStats.videos).toLocaleString()}</span>
                                 </div>
-                                {/* Storage usage bar — animated dual segment */}
-                                {(() => {
-                                  const usedMatch = immichStorage.diskUse.match(/([\d.]+)/);
-                                  const totalMatch = immichStorage.diskSize.match(/([\d.]+)/);
-                                  const usedTB = usedMatch ? parseFloat(usedMatch[1]) : 0;
-                                  const totalTB = totalMatch ? parseFloat(totalMatch[1]) : 1;
-                                  const usagePct = Math.min(100, (usedTB / totalTB) * 100);
-                                  const freePct = 100 - usagePct;
-                                  return (
-                                    <div className="mt-1.5 space-y-1">
-                                      <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-white/[0.04]">
-                                        <div
-                                          className={`h-full transition-all duration-[1500ms] ease-out rounded-l-full ${
-                                            usagePct > 90 ? "bg-gradient-to-r from-red-500/70 to-red-400/50" : usagePct > 70 ? "bg-gradient-to-r from-yellow-500/60 to-yellow-400/40" : "bg-gradient-to-r from-blue-500/60 to-blue-400/40"
-                                          }`}
-                                          style={{ width: `${usagePct}%` }}
-                                        />
-                                        <div
-                                          className="h-full bg-gradient-to-r from-emerald-500/25 to-emerald-400/15 transition-all duration-[1500ms] ease-out rounded-r-full"
-                                          style={{ width: `${freePct}%` }}
-                                        />
+                              </>
+                            ) : (
+                              <p className="text-xs text-white/40">—</p>
+                            )}
+                          </div>
+
+                          {/* Storage */}
+                          <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-2.5 transition-colors duration-300 group-hover:border-blue-400/15 group-hover:bg-blue-500/[0.04]">
+                            <p className="mb-1.5 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-blue-400/70">
+                              <HardDrive className="h-3 w-3" /> Storage
+                            </p>
+                            {immichStorage ? (
+                              <>
+                                <div className="space-y-1">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-xs text-white/50">Used</span>
+                                    <span className="text-xs font-semibold tabular-nums text-white/85">{immichStorage.diskUse}</span>
+                                  </div>
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-xs text-white/50">Free</span>
+                                    <span className="text-xs font-semibold tabular-nums text-white/85">{immichStorage.diskAvailable}</span>
+                                  </div>
+                                </div>
+                                <div className="mt-1.5">
+                                  <div className="flex items-center justify-between border-t border-blue-400/10 pt-1.5">
+                                    <span className="text-[10px] font-semibold uppercase tracking-wider text-blue-400/50">Total</span>
+                                    <span className="text-xs font-bold tabular-nums text-blue-300">{immichStorage.diskSize}</span>
+                                  </div>
+                                  {(() => {
+                                    const usedMatch = immichStorage.diskUse.match(/([\d.]+)/);
+                                    const totalMatch = immichStorage.diskSize.match(/([\d.]+)/);
+                                    const usedTB = usedMatch ? parseFloat(usedMatch[1]) : 0;
+                                    const totalTB = totalMatch ? parseFloat(totalMatch[1]) : 1;
+                                    const usagePct = Math.min(100, (usedTB / totalTB) * 100);
+                                    const freePct = 100 - usagePct;
+                                    return (
+                                      <div className="mt-1.5 space-y-1">
+                                        <div className="flex h-2 w-full overflow-hidden rounded-full bg-white/[0.04]">
+                                          <div
+                                            className={`h-full transition-all duration-[1500ms] ease-out rounded-l-full ${
+                                              usagePct > 90 ? "bg-gradient-to-r from-red-500/70 to-red-400/50" : usagePct > 70 ? "bg-gradient-to-r from-yellow-500/60 to-yellow-400/40" : "bg-gradient-to-r from-blue-500/60 to-blue-400/40"
+                                            }`}
+                                            style={{ width: `${usagePct}%` }}
+                                          />
+                                          <div
+                                            className="h-full bg-gradient-to-r from-emerald-500/25 to-emerald-400/15 transition-all duration-[1500ms] ease-out rounded-r-full"
+                                            style={{ width: `${freePct}%` }}
+                                          />
+                                        </div>
+                                        <div className="flex justify-between text-[9px] tabular-nums">
+                                          <span className={usagePct > 90 ? "text-red-300/60" : usagePct > 70 ? "text-yellow-300/60" : "text-blue-300/60"}>{usagePct.toFixed(0)}% used</span>
+                                          <span className="text-emerald-300/50">{freePct.toFixed(0)}% free</span>
+                                        </div>
                                       </div>
-                                      <div className="flex justify-between text-[9px] tabular-nums">
-                                        <span className={usagePct > 90 ? "text-red-300/60" : usagePct > 70 ? "text-yellow-300/60" : "text-blue-300/60"}>{usagePct.toFixed(0)}% used</span>
-                                        <span className="text-emerald-300/50">{freePct.toFixed(0)}% free</span>
-                                      </div>
-                                    </div>
-                                  );
-                                })()}
-                              </div>
-                            </>
-                          ) : (
-                            <p className="text-xs text-white/40">—</p>
-                          )}
+                                    );
+                                  })()}
+                                </div>
+                              </>
+                            ) : (
+                              <p className="text-xs text-white/40">—</p>
+                            )}
+                          </div>
                         </div>
 
-                        {/* Divider */}
-                        <div className="w-px self-stretch bg-gradient-to-b from-transparent via-blue-400/20 to-transparent" />
-                        {/* Section 3: Top 3 job queues */}
-                        <div className="relative flex-1 flex flex-col rounded-r-lg border border-white/[0.06] bg-white/[0.03] p-3 transition-colors duration-300 group-hover:border-blue-400/15 group-hover:bg-blue-500/[0.04]">
-                          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-400/20 to-transparent" />
-                          <div className="mb-2 flex items-center gap-1.5">
+                        {/* Row 2: Jobs — full width */}
+                        <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-2.5 transition-colors duration-300 group-hover:border-blue-400/15 group-hover:bg-blue-500/[0.04]">
+                          <div className="mb-1.5 flex items-center gap-1.5">
                             <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-blue-400/70">
                               <ListTodo className="h-3 w-3" /> Jobs
                             </p>
