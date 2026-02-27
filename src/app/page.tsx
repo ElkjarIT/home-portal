@@ -772,103 +772,84 @@ export default function DashboardPage() {
                             )}
                           </div>
 
-                          <div className="flex items-start gap-4">
-                            {/* Battery visual */}
-                            <div className="relative flex-shrink-0" style={{ width: 82, height: 42 }}>
-                              <div className={`absolute inset-0 rounded-lg border-2 overflow-hidden ${
-                                isCharging ? "border-green-400/60 shadow-[0_0_10px_rgba(74,222,128,0.2)]" : battColor === "green" ? "border-green-400/40" : battColor === "yellow" ? "border-yellow-400/40" : "border-red-400/50"
-                              }`}>
-                                <div
-                                  className={`absolute bottom-0 left-0 top-0 transition-all duration-1000 ${
-                                    isCharging
-                                      ? "bg-gradient-to-r from-green-500/60 to-green-400/40"
-                                      : battColor === "green"
-                                        ? "bg-gradient-to-r from-green-500/50 to-green-400/30"
-                                        : battColor === "yellow"
-                                          ? "bg-gradient-to-r from-yellow-500/50 to-yellow-400/30"
-                                          : "bg-gradient-to-r from-red-500/60 to-red-400/40"
-                                  }`}
-                                  style={{ width: `${battPct}%` }}
-                                >
-                                  {isCharging && (
-                                    <div className="absolute inset-0 overflow-hidden">
-                                      <div className="animate-battery-wave absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent" />
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                              <div className={`absolute right-[-6px] top-[13px] h-[22px] w-[5px] rounded-r-sm ${
-                                isCharging ? "bg-green-400/50" : battColor === "green" ? "bg-green-400/30" : battColor === "yellow" ? "bg-yellow-400/30" : "bg-red-400/40"
-                              }`} />
-                              <div className="absolute inset-0 flex items-center justify-center">
-                                <span className={`text-base font-bold tabular-nums ${
-                                  isCharging ? "text-green-300 animate-battery-pulse" : battColor === "green" ? "text-green-300" : battColor === "yellow" ? "text-yellow-300" : "text-red-300"
+                          <div className="flex items-stretch gap-3">
+                            {/* LEFT — Battery visual + charge info */}
+                            <div className="flex flex-col items-center gap-2">
+                              <div className="relative flex-shrink-0" style={{ width: 82, height: 42 }}>
+                                <div className={`absolute inset-0 rounded-lg border-2 overflow-hidden ${
+                                  isCharging ? "border-green-400/60 shadow-[0_0_10px_rgba(74,222,128,0.2)]" : battColor === "green" ? "border-green-400/40" : battColor === "yellow" ? "border-yellow-400/40" : "border-red-400/50"
                                 }`}>
-                                  {isNaN(battery) ? "—" : `${battery}%`}
-                                </span>
-                              </div>
-                              {isCharging && (
-                                <div className="absolute -right-2 -top-2">
-                                  <Zap className="h-4 w-4 text-green-400 animate-pulse drop-shadow-[0_0_4px_rgba(74,222,128,0.6)]" />
+                                  <div
+                                    className={`absolute bottom-0 left-0 top-0 transition-all duration-1000 ${
+                                      isCharging
+                                        ? "bg-gradient-to-r from-green-500/60 to-green-400/40"
+                                        : battColor === "green"
+                                          ? "bg-gradient-to-r from-green-500/50 to-green-400/30"
+                                          : battColor === "yellow"
+                                            ? "bg-gradient-to-r from-yellow-500/50 to-yellow-400/30"
+                                            : "bg-gradient-to-r from-red-500/60 to-red-400/40"
+                                    }`}
+                                    style={{ width: `${battPct}%` }}
+                                  >
+                                    {isCharging && (
+                                      <div className="absolute inset-0 overflow-hidden">
+                                        <div className="animate-battery-wave absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent" />
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
-                              )}
-                              {!isNaN(limitPct) && (
-                                <div
-                                  className="absolute top-0 bottom-0 w-px border-l border-dashed border-white/30"
-                                  style={{ left: `${Math.min(100, limitPct)}%` }}
-                                  title={`Charge limit: ${limitPct}%`}
-                                />
+                                <div className={`absolute right-[-6px] top-[13px] h-[22px] w-[5px] rounded-r-sm ${
+                                  isCharging ? "bg-green-400/50" : battColor === "green" ? "bg-green-400/30" : battColor === "yellow" ? "bg-yellow-400/30" : "bg-red-400/40"
+                                }`} />
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                  <span className={`text-base font-bold tabular-nums ${
+                                    isCharging ? "text-green-300 animate-battery-pulse" : battColor === "green" ? "text-green-300" : battColor === "yellow" ? "text-yellow-300" : "text-red-300"
+                                  }`}>
+                                    {isNaN(battery) ? "—" : `${battery}%`}
+                                  </span>
+                                </div>
+                                {isCharging && (
+                                  <div className="absolute -right-2 -top-2">
+                                    <Zap className="h-4 w-4 text-green-400 animate-pulse drop-shadow-[0_0_4px_rgba(74,222,128,0.6)]" />
+                                  </div>
+                                )}
+                                {!isNaN(limitPct) && (
+                                  <div
+                                    className="absolute top-0 bottom-0 w-px border-l border-dashed border-white/30"
+                                    style={{ left: `${Math.min(100, limitPct)}%` }}
+                                    title={`Charge limit: ${limitPct}%`}
+                                  />
+                                )}
+                              </div>
+                              {addedKwh > 0 && (
+                                <span className="text-[10px] tabular-nums text-white/45">+{addedKwh.toFixed(1)} kWh added</span>
                               )}
                             </div>
 
-                            {/* Status + stats */}
-                            <div className="flex-1 min-w-0">
-                              <div className="mb-2 flex flex-wrap items-center gap-2">
-                                {isCharging ? (
-                                  <span className="flex items-center gap-1.5 rounded-full bg-green-500/15 px-2.5 py-1 text-xs font-semibold text-green-400 ring-1 ring-green-400/20 animate-ev-glow">
-                                    <BatteryCharging className="h-3.5 w-3.5 animate-ev-charge-icon" />
-                                    {powerKw} kW
-                                  </span>
-                                ) : (
-                                  <span className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${
-                                    statusText === "disconnected"
-                                      ? "bg-white/[0.05] text-white/45"
-                                      : "bg-yellow-500/10 text-yellow-300 ring-1 ring-yellow-400/15"
-                                  }`}>
-                                    <Circle className={`h-2 w-2 ${
-                                      statusText === "disconnected" ? "fill-white/20 text-white/30" : "fill-yellow-400/50 text-yellow-400/50"
-                                    }`} />
-                                    {statusLabel}
-                                  </span>
-                                )}
-                                {addedKwh > 0 && (
-                                  <span className="text-xs tabular-nums text-white/50">+{addedKwh.toFixed(1)} kWh</span>
-                                )}
-                              </div>
+                            {/* Vertical divider */}
+                            <div className="w-px self-stretch bg-gradient-to-b from-transparent via-white/[0.10] to-transparent" />
 
-                              <div className="grid grid-cols-3 gap-x-3 gap-y-1">
-                                {!isNaN(estKm) && (
-                                  <div className="flex flex-col">
-                                    <span className="text-[10px] text-white/40">Estimated</span>
-                                    <span className="text-xs font-semibold tabular-nums text-white/80">{estKm.toFixed(0)} km</span>
-                                  </div>
-                                )}
-                                {!isNaN(ratedKm) && (
-                                  <div className="flex flex-col">
-                                    <span className="text-[10px] text-white/40">Rated</span>
-                                    <span className="text-xs font-semibold tabular-nums text-white/80">{ratedKm.toFixed(0)} km</span>
-                                  </div>
-                                )}
-                                {!isNaN(idealKm) && (
-                                  <div className="flex flex-col">
-                                    <span className="text-[10px] text-white/40">Ideal</span>
-                                    <span className="text-xs tabular-nums text-white/55">{idealKm.toFixed(0)} km</span>
-                                  </div>
-                                )}
-                              </div>
-
+                            {/* MIDDLE — Status + temps */}
+                            <div className="flex flex-1 flex-col items-center justify-center gap-2 min-w-0">
+                              {isCharging ? (
+                                <span className="flex items-center gap-1.5 rounded-full bg-green-500/15 px-2.5 py-1 text-xs font-semibold text-green-400 ring-1 ring-green-400/20 animate-ev-glow">
+                                  <BatteryCharging className="h-3.5 w-3.5 animate-ev-charge-icon" />
+                                  {powerKw} kW
+                                </span>
+                              ) : (
+                                <span className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${
+                                  statusText === "disconnected"
+                                    ? "bg-white/[0.05] text-white/45"
+                                    : "bg-yellow-500/10 text-yellow-300 ring-1 ring-yellow-400/15"
+                                }`}>
+                                  <Circle className={`h-2 w-2 ${
+                                    statusText === "disconnected" ? "fill-white/20 text-white/30" : "fill-yellow-400/50 text-yellow-400/50"
+                                  }`} />
+                                  {statusLabel}
+                                </span>
+                              )}
                               {(!isNaN(insideC) || !isNaN(outsideC)) && (
-                                <div className="mt-2 flex items-center gap-3 text-xs text-white/45">
+                                <div className="flex flex-col items-center gap-0.5 text-[11px] text-white/45">
                                   {!isNaN(insideC) && (
                                     <span className="flex items-center gap-1">
                                       <Thermometer className="h-3 w-3" /> {insideC.toFixed(0)}°C inside
@@ -879,6 +860,32 @@ export default function DashboardPage() {
                                       <ThermometerSnowflake className="h-3 w-3" /> {outsideC.toFixed(0)}°C outside
                                     </span>
                                   )}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Vertical divider */}
+                            <div className="w-px self-stretch bg-gradient-to-b from-transparent via-white/[0.10] to-transparent" />
+
+                            {/* RIGHT — Range data stacked */}
+                            <div className="flex flex-col justify-center gap-1.5 min-w-[80px]">
+                              <p className="text-[9px] font-bold uppercase tracking-widest text-white/35 text-center">Range</p>
+                              {!isNaN(estKm) && (
+                                <div className="flex items-baseline justify-between gap-2">
+                                  <span className="text-[10px] text-white/40">Est</span>
+                                  <span className="text-xs font-semibold tabular-nums text-white/80">{estKm.toFixed(0)} km</span>
+                                </div>
+                              )}
+                              {!isNaN(ratedKm) && (
+                                <div className="flex items-baseline justify-between gap-2">
+                                  <span className="text-[10px] text-white/40">Rated</span>
+                                  <span className="text-xs font-semibold tabular-nums text-white/80">{ratedKm.toFixed(0)} km</span>
+                                </div>
+                              )}
+                              {!isNaN(idealKm) && (
+                                <div className="flex items-baseline justify-between gap-2">
+                                  <span className="text-[10px] text-white/40">Ideal</span>
+                                  <span className="text-xs tabular-nums text-white/55">{idealKm.toFixed(0)} km</span>
                                 </div>
                               )}
                             </div>
