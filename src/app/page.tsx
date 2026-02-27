@@ -32,6 +32,7 @@ import {
   Search,
   Play,
   Pause,
+  Square,
 } from "lucide-react";
 
 // ——— Room lights from HA ———
@@ -200,6 +201,7 @@ export default function DashboardPage() {
   const [haStates, setHaStates] = useState<HAState[]>([]);
   const [loading, setLoading] = useState(true);
   const [immichQueues, setImmichQueues] = useState<ImmichQueue[]>([]);
+  const [evChargeConfirm, setEvChargeConfirm] = useState<"start" | "stop" | null>(null);
   const [immichStats, setImmichStats] = useState<ImmichStats | null>(null);
   const [immichStorage, setImmichStorage] = useState<ImmichStorage | null>(null);
   const [immichLoading, setImmichLoading] = useState(true);
@@ -925,6 +927,7 @@ export default function DashboardPage() {
                     {(() => {
                       const chargingBin = haStates.find((e) => e.entity_id === "binary_sensor.bilskirner_charging");
                       const chargingEnum = haStates.find((e) => e.entity_id === "sensor.bilskirner_charging");
+                      const chargeSwitch = haStates.find((e) => e.entity_id === "switch.bilskirner_charge");
                       const chargerPower = haStates.find((e) => e.entity_id === "sensor.bilskirner_charger_power");
                       const energyAdded = haStates.find((e) => e.entity_id === "sensor.bilskirner_charge_energy_added");
                       const battLevel = haStates.find((e) => e.entity_id === "sensor.bilskirner_battery_level");
@@ -948,6 +951,7 @@ export default function DashboardPage() {
                       const outsideC = outsideTemp ? parseFloat(outsideTemp.state) : NaN;
                       const limitPct = chargeLimit ? parseInt(chargeLimit.state, 10) : NaN;
                       const statusLabel = statusText === "disconnected" ? "Disconnected" : statusText === "stopped" ? "Stopped" : statusText === "complete" ? "Complete" : statusText.charAt(0).toUpperCase() + statusText.slice(1);
+                      const chargeEnabled = chargeSwitch?.state === "on";
                       return (
                         <div className={`mb-3 rounded-xl border-2 p-3 ${
                           isCharging
@@ -961,9 +965,35 @@ export default function DashboardPage() {
                               <Car className={`h-4 w-4 ${isCharging ? "text-green-400" : "text-white/60"}`} />
                             </div>
                             <span className="text-sm font-semibold text-white">Bilskirner</span>
-                            {isCharging && (
+                            {/* Charge toggle button */}
+                            {statusText !== "disconnected" && (
+                              <button
+                                onClick={() => setEvChargeConfirm(chargeEnabled ? "stop" : "start")}
+                                disabled={togglingEntities.has("switch.bilskirner_charge")}
+                                className={`ml-auto flex h-6 items-center gap-1 rounded-md px-2 text-[10px] font-bold uppercase tracking-wider transition-all duration-200 active:scale-90 ${
+                                  chargeEnabled
+                                    ? "bg-green-500/15 text-green-400 hover:bg-red-500/15 hover:text-red-400"
+                                    : "bg-white/[0.06] text-white/40 hover:bg-green-500/15 hover:text-green-400"
+                                }`}
+                                title={chargeEnabled ? "Stop charging" : "Start charging"}
+                              >
+                                {togglingEntities.has("switch.bilskirner_charge") ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : chargeEnabled ? (
+                                  <><Square className="h-2.5 w-2.5 fill-current" /> Stop</>
+                                ) : (
+                                  <><Play className="h-2.5 w-2.5 fill-current" /> Start</>
+                                )}
+                              </button>
+                            )}
+                            {isCharging && statusText === "disconnected" && (
                               <span className="ml-auto flex items-center gap-1 animate-pulse text-green-400">
                                 <Zap className="h-3.5 w-3.5" /> CHARGING
+                              </span>
+                            )}
+                            {isCharging && statusText !== "disconnected" && (
+                              <span className="flex items-center gap-1 animate-pulse text-green-400">
+                                <Zap className="h-3.5 w-3.5" />
                               </span>
                             )}
                           </div>
@@ -1419,6 +1449,61 @@ export default function DashboardPage() {
           </a>
         </div>
       </div>
+
+      {/* EV Charge confirmation modal */}
+      {evChargeConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setEvChargeConfirm(null)}>
+          <div
+            className="mx-4 w-full max-w-sm rounded-2xl border border-white/[0.12] bg-slate-900/95 p-6 shadow-2xl backdrop-blur-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-4 flex items-center gap-3">
+              <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${
+                evChargeConfirm === "stop" ? "bg-red-500/20" : "bg-green-500/20"
+              }`}>
+                {evChargeConfirm === "stop" ? (
+                  <Square className={`h-5 w-5 text-red-400 fill-red-400`} />
+                ) : (
+                  <Play className="h-5 w-5 text-green-400 fill-green-400" />
+                )}
+              </div>
+              <div>
+                <h3 className="text-base font-semibold text-white">
+                  {evChargeConfirm === "stop" ? "Stop Charging?" : "Start Charging?"}
+                </h3>
+                <p className="text-xs text-white/50">Bilskirner</p>
+              </div>
+            </div>
+            <p className="mb-5 text-sm text-white/60">
+              {evChargeConfirm === "stop"
+                ? "This will stop the active charging session. You can restart it later."
+                : "This will start a new charging session for Bilskirner."}
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setEvChargeConfirm(null)}
+                className="flex-1 rounded-lg border border-white/[0.10] bg-white/[0.05] py-2 text-sm font-medium text-white/70 transition-colors hover:bg-white/[0.10] hover:text-white"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  const action = evChargeConfirm;
+                  setEvChargeConfirm(null);
+                  callHaService("switch", action === "stop" ? "turn_off" : "turn_on", "switch.bilskirner_charge");
+                }}
+                className={`flex-1 rounded-lg py-2 text-sm font-semibold transition-colors ${
+                  evChargeConfirm === "stop"
+                    ? "bg-red-500/20 text-red-400 hover:bg-red-500/30"
+                    : "bg-green-500/20 text-green-400 hover:bg-green-500/30"
+                }`}
+              >
+                {evChargeConfirm === "stop" ? "Stop Charging" : "Start Charging"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
