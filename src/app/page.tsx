@@ -157,7 +157,7 @@ function GlassCard({
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={`rounded-2xl border border-white/[0.10] bg-white/[0.07] backdrop-blur-xl ${className}`}
+      className={`rounded-xl border border-white/[0.10] bg-white/[0.07] backdrop-blur-xl ${className}`}
       {...props}
     >
       {children}
@@ -177,7 +177,7 @@ function SectionLabel({
   actions?: React.ReactNode;
 }) {
   return (
-    <div className="mb-3 flex items-center justify-between">
+    <div className="mb-2 flex items-center justify-between">
       <div className="flex items-center gap-2">
         <Icon className={`h-4 w-4 ${iconColor}`} />
         <h3 className="text-xs font-semibold uppercase tracking-[0.15em] text-white/60">
@@ -303,20 +303,20 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen">
 
-      <div className="mx-auto max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1600px] px-3 py-3 sm:px-4 lg:px-6">
         <TopNav />
 
         {/* ——— Welcome Banner ——— */}
-        <GlassCard className="mb-6 p-5">
-          <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-500/20 ring-1 ring-blue-400/30">
-              <Home className="h-6 w-6 text-blue-400" />
+        <GlassCard className="mb-3 px-4 py-2.5">
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-500/20 ring-1 ring-blue-400/30">
+              <Home className="h-4 w-4 text-blue-400" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white sm:text-2xl">
+              <h1 className="text-base font-bold text-white">
                 Welcome{firstName ? `, ${firstName}` : ""}
               </h1>
-              <p className="text-sm text-white/60">
+              <p className="text-xs text-white/60">
                 Quick access to your home services
               </p>
             </div>
@@ -324,34 +324,34 @@ export default function DashboardPage() {
         </GlassCard>
 
         {/* ——— Two-column grid ——— */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_340px]">
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-[1fr_340px]">
           {/* === LEFT COLUMN === */}
-          <div className="space-y-6">
+          <div className="space-y-3">
             {/* — SMART HOME DEVICES — */}
             <section>
               <SectionLabel icon={Wifi} iconColor="text-sky-400">
                 Smart Home Devices
               </SectionLabel>
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {/* Room Lights + Apple TV side by side */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-2">
                   {/* Room Lights — 2/3 */}
-                  <GlassCard className="p-4 lg:col-span-2">
-                    <div className="flex items-center gap-3 mb-3">
+                  <GlassCard className="p-3 lg:col-span-2">
+                    <div className="flex items-center gap-2 mb-2">
                       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-500/20">
                         <Lightbulb className="h-5 w-5 text-amber-400" />
                       </div>
                       <div className="min-w-0 flex-1">
                         <span className="text-sm font-medium text-white">Room Lights</span>
                       </div>
-                      <div className="flex items-baseline gap-1.5">
-                        <span className="text-2xl font-bold tabular-nums text-amber-300 drop-shadow-[0_0_8px_rgba(251,191,36,0.3)]">
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-xl font-bold tabular-nums text-amber-300 drop-shadow-[0_0_8px_rgba(251,191,36,0.3)]">
                           {loading ? "—" : onCount}
                         </span>
-                        <span className="text-xs text-white/40">/ {ROOM_LIGHTS.length} on</span>
+                        <span className="text-[10px] text-white/40">/ {ROOM_LIGHTS.length} on</span>
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 sm:grid-cols-3">
+                    <div className="grid grid-cols-2 gap-x-3 gap-y-1 sm:grid-cols-3">
                       {ROOM_LIGHTS.map((room) => {
                         const state = lights.find((l) => l.entity_id === room.entity_id);
                         const isOn = state?.state === "on";
@@ -378,8 +378,8 @@ export default function DashboardPage() {
                   </GlassCard>
 
                   {/* Apple TV — 1/3 with TV screen visual */}
-                  <GlassCard className="p-4 flex flex-col">
-                    <div className="flex items-center gap-2 mb-3">
+                  <GlassCard className="p-3 flex flex-col">
+                    <div className="flex items-center gap-2 mb-2">
                       <Tv className="h-4 w-4 text-slate-300" />
                       <span className="text-sm font-medium text-white">Apple TV</span>
                     </div>
@@ -464,7 +464,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Immich + Climate side by side */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-2">
                 {/* Immich card — 2/3 */}
                 <a
                   href="https://immich.aser.dk"
@@ -472,10 +472,10 @@ export default function DashboardPage() {
                   rel="noopener noreferrer"
                   className="group lg:col-span-2"
                 >
-                  <GlassCard className="p-4 transition-all duration-300 hover:bg-white/[0.12] hover:shadow-[0_0_24px_rgba(59,130,246,0.08)]">
+                  <GlassCard className="p-3 transition-all duration-300 hover:bg-white/[0.12] hover:shadow-[0_0_24px_rgba(59,130,246,0.08)]">
                     {/* Header */}
-                    <div className="mb-4 flex items-center gap-3">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-500/20 transition-transform duration-300 group-hover:scale-110">
+                    <div className="mb-2 flex items-center gap-2">
+                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-500/20 transition-transform duration-300 group-hover:scale-110">
                         <ImageIcon className="h-4 w-4 text-blue-400" />
                       </div>
                       <span className="text-sm font-medium text-white">Immich</span>
@@ -611,9 +611,9 @@ export default function DashboardPage() {
                 </a>
 
                 {/* Climate / Room Temperatures — 1/3 width */}
-                <GlassCard className="p-4">
-                  <div className="flex items-center gap-3">
-                    <Thermometer className="h-4 w-4 text-rose-400" />
+                <GlassCard className="p-3">
+                  <div className="flex items-center gap-2">
+                    <Thermometer className="h-3.5 w-3.5 text-rose-400" />
                     <span className="text-sm font-medium text-white">
                       Room Climate
                     </span>
@@ -621,7 +621,7 @@ export default function DashboardPage() {
                       {loading ? "Loading..." : "Roth Touchline"}
                     </span>
                   </div>
-                  <div className="mt-3 grid grid-cols-1 gap-y-1.5">
+                  <div className="mt-2 grid grid-cols-1 gap-y-1">
                     {CLIMATE_ROOMS.map((room) => {
                       const entity = haStates.find(
                         (e) => e.entity_id === room.entity_id
@@ -675,7 +675,7 @@ export default function DashboardPage() {
               <SectionLabel icon={Zap} iconColor="text-yellow-400">
                 Energy Monitoring
               </SectionLabel>
-              <GlassCard className="p-4">
+              <GlassCard className="p-3">
                 {loading && energyLoading ? (
                   <div className="flex items-center gap-2 text-xs text-white/45">
                     <Loader2 className="h-3 w-3 animate-spin" />
@@ -691,10 +691,10 @@ export default function DashboardPage() {
                       const l2 = parseInt(haStates.find((e) => e.entity_id === "sensor.grid_connection_import_power_l2")?.state ?? "", 10);
                       const l3 = parseInt(haStates.find((e) => e.entity_id === "sensor.grid_connection_import_power_l3")?.state ?? "", 10);
                       return (
-                        <div className="mb-4">
+                        <div className="mb-3">
                           <div className="flex items-baseline gap-2">
-                            <Zap className="h-4 w-4 text-green-400" />
-                            <span className="text-2xl font-bold tabular-nums text-green-400">
+                            <Zap className="h-3.5 w-3.5 text-green-400" />
+                            <span className="text-xl font-bold tabular-nums text-green-400">
                               {isNaN(watts) ? "—" : watts.toLocaleString()}
                             </span>
                             <span className="text-sm text-green-400/70">W</span>
@@ -720,8 +720,8 @@ export default function DashboardPage() {
                       const avgKwh = last7.reduce((s, d) => s + d.kwh, 0) / last7.length;
                       const todayStr = new Date().toISOString().split("T")[0];
                       return (
-                        <div className="mb-4 rounded-xl bg-white/[0.03] p-3">
-                          <div className="mb-3 flex items-center justify-between">
+                        <div className="mb-3 rounded-lg bg-white/[0.03] p-2.5">
+                          <div className="mb-2 flex items-center justify-between">
                             <p className="text-xs font-semibold uppercase tracking-wider text-white/50">
                               <BarChart3 className="mr-1 inline h-3 w-3 -translate-y-px" />
                               Daily Consumption
@@ -730,7 +730,7 @@ export default function DashboardPage() {
                           </div>
 
                           {/* Bar chart area */}
-                          <div className="relative flex items-end gap-2" style={{ height: 96 }}>
+                          <div className="relative flex items-end gap-1.5" style={{ height: 72 }}>
                             {/* Avg reference line */}
                             <div
                               className="pointer-events-none absolute left-0 right-0 border-t border-dashed border-white/[0.07]"
@@ -754,7 +754,7 @@ export default function DashboardPage() {
                                   </span>
 
                                   {/* Bar */}
-                                  <div className="relative flex w-full items-end justify-center" style={{ height: 64 }}>
+                                  <div className="relative flex w-full items-end justify-center" style={{ height: 48 }}>
                                     <div
                                       className={`w-full rounded-md transition-all duration-500 ${
                                         isToday
@@ -782,11 +782,11 @@ export default function DashboardPage() {
                     })()}
 
                     {/* Today's usage + Live power side by side */}
-                    <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div className="mb-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
                     {/* Today's usage per device */}
                     {deviceToday.length > 0 && (
-                      <div className="rounded-xl bg-white/[0.03] p-3">
-                        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-white/50">
+                      <div className="rounded-lg bg-white/[0.03] p-2.5">
+                        <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-white/50">
                           <Zap className="mr-1 inline h-3 w-3 -translate-y-px text-yellow-400" />
                           Today&apos;s Usage by Device
                         </p>
@@ -814,8 +814,8 @@ export default function DashboardPage() {
                     )}
 
                     {/* Appliances — live power */}
-                    <div className="rounded-xl bg-white/[0.03] p-3">
-                      <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-white/50">
+                    <div className="rounded-lg bg-white/[0.03] p-2.5">
+                      <p className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-white/50">
                         <Plug className="h-3 w-3" /> Live Power
                       </p>
                       <div className="grid grid-cols-1 gap-y-1">
@@ -865,12 +865,12 @@ export default function DashboardPage() {
                       const limitPct = chargeLimit ? parseInt(chargeLimit.state, 10) : NaN;
                       const statusLabel = statusText === "disconnected" ? "Disconnected" : statusText === "stopped" ? "Stopped" : statusText === "complete" ? "Complete" : statusText.charAt(0).toUpperCase() + statusText.slice(1);
                       return (
-                        <div className={`mt-4 rounded-xl border p-4 ${
+                        <div className={`mt-3 rounded-lg border p-3 ${
                           isCharging
                             ? "border-green-400/20 bg-green-500/[0.04] shadow-[0_0_20px_rgba(74,222,128,0.06)]"
                             : "border-white/[0.08] bg-white/[0.04]"
                         }`}>
-                          <p className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-white/55">
+                          <p className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-white/55">
                             <Car className="h-3.5 w-3.5" /> EV — Bilskirner
                             {isCharging && (
                               <span className="ml-auto flex items-center gap-1 animate-pulse text-green-400">
@@ -879,9 +879,9 @@ export default function DashboardPage() {
                             )}
                           </p>
 
-                          <div className="flex items-start gap-5">
-                            {/* Large battery visual */}
-                            <div className="relative flex-shrink-0" style={{ width: 88, height: 44 }}>
+                          <div className="flex items-start gap-4">
+                            {/* Battery visual */}
+                            <div className="relative flex-shrink-0" style={{ width: 76, height: 38 }}>
                               <div className={`absolute inset-0 rounded-lg border-2 overflow-hidden ${
                                 isCharging ? "border-green-400/60 shadow-[0_0_8px_rgba(74,222,128,0.15)]" : battColor === "green" ? "border-green-400/40" : battColor === "yellow" ? "border-yellow-400/40" : "border-red-400/50"
                               }`}>
@@ -1003,12 +1003,12 @@ export default function DashboardPage() {
             </section>
 
             {/* — PRINTER + INFRASTRUCTURE (side by side) — */}
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <section>
               <SectionLabel icon={Printer} iconColor="text-orange-400">
                 Canon Printer
               </SectionLabel>
-              <GlassCard className="p-4">
+              <GlassCard className="p-3">
                 {loading ? (
                   <div className="flex items-center gap-2 text-xs text-white/45">
                     <Loader2 className="h-3 w-3 animate-spin" />
@@ -1023,7 +1023,7 @@ export default function DashboardPage() {
                       );
                       const isOnline = tracker?.state === "home";
                       return (
-                        <div className="mb-4 flex items-center gap-2">
+                        <div className="mb-3 flex items-center gap-2">
                           <Circle
                             className={`h-2.5 w-2.5 ${
                               isOnline
@@ -1039,7 +1039,7 @@ export default function DashboardPage() {
                     })()}
 
                     {/* Toner bars */}
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                       {TONER_SENSORS.map((toner) => {
                         const entity = haStates.find(
                           (e) => e.entity_id === toner.entity_id
@@ -1175,7 +1175,7 @@ export default function DashboardPage() {
                 Quick Theme
               </SectionLabel>
               <GlassCard className="overflow-hidden">
-                <div className="relative h-48 sm:h-56">
+                <div className="relative h-32 sm:h-40">
                   <img
                     src="/bg-smart-home.png"
                     alt="Smart home"
@@ -1188,12 +1188,12 @@ export default function DashboardPage() {
           </div>
 
           {/* === RIGHT COLUMN === */}
-          <div className="space-y-6">
+          <div className="space-y-3">
           </div>
         </div>
 
         {/* ——— Footer ——— */}
-        <div className="mt-8 flex items-center gap-4 pb-6 text-xs text-white/45">
+        <div className="mt-4 flex items-center gap-4 pb-4 text-xs text-white/45">
           <Home className="h-4 w-4" />
           <a
             href="https://ha.aser.dk/config/automation/dashboard"
