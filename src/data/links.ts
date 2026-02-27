@@ -53,22 +53,6 @@ export const generalLinks: ServiceLink[] = [
     iconBg: "bg-blue-600/20",
     iconColor: "text-blue-400",
   },
-  {
-    name: "Cloudflare",
-    description: "DNS & CDN management",
-    url: "https://dash.cloudflare.com",
-    icon: Cloud,
-    iconBg: "bg-orange-500/20",
-    iconColor: "text-orange-400",
-  },
-  {
-    name: "GitHub",
-    description: "Source code & repositories",
-    url: "https://github.com",
-    icon: Github,
-    iconBg: "bg-violet-500/20",
-    iconColor: "text-violet-400",
-  },
 ];
 
 // ——— Admin-only links ———
