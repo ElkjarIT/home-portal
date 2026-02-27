@@ -202,3 +202,8 @@
 .animate-tv-color-shift {
   animation: tv-color-shift 6s ease-in-out infinite;
 }
+
+@keyframes toner-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}

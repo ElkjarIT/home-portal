@@ -29,7 +29,8 @@ const WANTED_ENTITIES = new Set([
   "climate.thor",
   // Media
   "media_player.stuen_tv",
-  // Printer toner
+  // Printer toner + status
+  "sensor.cnmf633c_635c",
   "sensor.cnmf633c_635c_canon_cartridge_045_black_toner",
   "sensor.cnmf633c_635c_canon_cartridge_045_cyan_toner",
   "sensor.cnmf633c_635c_canon_cartridge_045_magenta_to",

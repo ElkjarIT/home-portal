@@ -1016,57 +1016,63 @@ export default function DashboardPage() {
                   </div>
                 ) : (
                   <>
-                    {/* Printer connectivity */}
+                    {/* Printer status */}
                     {(() => {
-                      const tracker = haStates.find(
-                        (e) => e.entity_id === "device_tracker.cannon"
-                      );
+                      const tracker = haStates.find((e) => e.entity_id === "device_tracker.cannon");
+                      const statusSensor = haStates.find((e) => e.entity_id === "sensor.cnmf633c_635c");
                       const isOnline = tracker?.state === "home";
+                      const printerState = statusSensor?.state ?? "unknown";
+                      const statusConfig: Record<string, { label: string; color: string; dot: string; bg: string; pulse?: boolean }> = {
+                        printing: { label: "Printing", color: "text-green-400", dot: "fill-green-400 text-green-400", bg: "bg-green-500/10 ring-1 ring-green-400/20", pulse: true },
+                        idle: { label: "Idle / Sleep", color: "text-amber-300", dot: "fill-amber-400 text-amber-400", bg: "bg-amber-500/10 ring-1 ring-amber-400/15" },
+                        stopped: { label: "Stopped", color: "text-red-400", dot: "fill-red-400 text-red-400", bg: "bg-red-500/10 ring-1 ring-red-400/15" },
+                      };
+                      const cfg = !isOnline
+                        ? { label: "Offline", color: "text-red-400", dot: "fill-red-400/50 text-red-400/50", bg: "bg-white/[0.04]" }
+                        : statusConfig[printerState] ?? { label: printerState, color: "text-white/60", dot: "fill-white/40 text-white/40", bg: "bg-white/[0.04]" };
                       return (
-                        <div className="mb-3 flex items-center gap-2">
-                          <Circle
-                            className={`h-2.5 w-2.5 ${
-                              isOnline
-                                ? "fill-green-400 text-green-400"
-                                : "fill-red-400 text-red-400"
-                            }`}
-                          />
-                          <span className="text-xs font-medium text-white/70">
-                            {isOnline ? "Online" : "Offline"}
-                          </span>
+                        <div className={`mb-3 flex items-center gap-2 rounded-lg px-2.5 py-1.5 ${cfg.bg}`}>
+                          <Circle className={`h-2 w-2 shrink-0 ${cfg.dot} ${cfg.pulse ? "animate-pulse" : ""}`} />
+                          <span className={`text-xs font-semibold ${cfg.color}`}>{cfg.label}</span>
+                          {printerState === "printing" && <Loader2 className="ml-auto h-3 w-3 animate-spin text-green-400/60" />}
                         </div>
                       );
                     })()}
 
-                    {/* Toner bars */}
-                    <div className="space-y-2">
+                    {/* Toner bars — colorful with glow */}
+                    <div className="space-y-2.5">
                       {TONER_SENSORS.map((toner) => {
-                        const entity = haStates.find(
-                          (e) => e.entity_id === toner.entity_id
-                        );
-                        const level = entity
-                          ? parseInt(entity.state, 10)
-                          : NaN;
+                        const entity = haStates.find((e) => e.entity_id === toner.entity_id);
+                        const level = entity ? parseInt(entity.state, 10) : NaN;
                         const pct = isNaN(level) ? 0 : Math.min(100, Math.max(0, level));
+                        const isLow = !isNaN(level) && level <= 15;
                         return (
                           <div key={toner.entity_id}>
                             <div className="mb-1 flex items-center justify-between text-xs">
-                              <span className="font-medium text-white/70">
-                                {toner.name}
-                              </span>
-                              <span className="tabular-nums text-white/55">
+                              <div className="flex items-center gap-1.5">
+                                <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: toner.color, boxShadow: `0 0 6px ${toner.color}60` }} />
+                                <span className="font-medium text-white/70">{toner.name}</span>
+                              </div>
+                              <span className={`tabular-nums font-semibold ${isLow ? "text-red-300 animate-pulse" : "text-white/60"}`}>
                                 {isNaN(level) ? "N/A" : `${level}%`}
                               </span>
                             </div>
-                            <div className="h-2 overflow-hidden rounded-full bg-white/10">
+                            <div className="relative h-2.5 overflow-hidden rounded-full bg-white/[0.06]">
                               <div
-                                className="h-full rounded-full transition-all"
+                                className="h-full rounded-full transition-all duration-1000 ease-out"
                                 style={{
                                   width: `${pct}%`,
-                                  backgroundColor: toner.color,
-                                  opacity: isNaN(level) ? 0.3 : 0.8,
+                                  background: `linear-gradient(90deg, ${toner.color}90, ${toner.color}50)`,
+                                  boxShadow: isLow ? `0 0 8px ${toner.color}40, inset 0 1px 0 rgba(255,255,255,0.15)` : `0 0 4px ${toner.color}20, inset 0 1px 0 rgba(255,255,255,0.1)`,
                                 }}
                               />
+                              {/* Shimmer overlay */}
+                              <div className="absolute inset-0 overflow-hidden rounded-full">
+                                <div
+                                  className="h-full w-[200%] animate-[toner-shimmer_3s_ease-in-out_infinite]"
+                                  style={{ background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 50%, transparent 100%)" }}
+                                />
+                              </div>
                             </div>
                           </div>
                         );
@@ -1081,65 +1087,49 @@ export default function DashboardPage() {
               <SectionLabel icon={Activity} iconColor="text-emerald-400">
                 Infrastructure
               </SectionLabel>
-              <GlassCard className="divide-y divide-white/[0.06]">
+              <GlassCard className="p-3">
                 {loading ? (
-                  <div className="flex items-center gap-2 p-4 text-xs text-white/45">
+                  <div className="flex items-center gap-2 text-xs text-white/45">
                     <Loader2 className="h-3 w-3 animate-spin" />
                     Loading…
                   </div>
                 ) : (
-                  INFRA_DEVICES.map((device) => {
-                    const tracker = haStates.find(
-                      (e) => e.entity_id === device.entity_id
-                    );
-                    const isOnline = tracker?.state === "home";
-                    const uptimeEntity = device.uptimeEntity
-                      ? haStates.find((e) => e.entity_id === device.uptimeEntity)
-                      : null;
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+                    {INFRA_DEVICES.map((device) => {
+                      const tracker = haStates.find((e) => e.entity_id === device.entity_id);
+                      const isOnline = tracker?.state === "home";
+                      const uptimeEntity = device.uptimeEntity
+                        ? haStates.find((e) => e.entity_id === device.uptimeEntity)
+                        : null;
 
-                    // Format uptime — prefer dedicated uptime sensor, fall back to last_changed on device_tracker
-                    let uptimeStr = "";
-                    let bootTime = NaN;
-                    if (uptimeEntity && uptimeEntity.state !== "unavailable" && uptimeEntity.state !== "unknown") {
-                      bootTime = new Date(uptimeEntity.state).getTime();
-                    } else if (isOnline && tracker?.last_changed) {
-                      // Use last_changed as "online since" for devices without a dedicated uptime sensor
-                      bootTime = new Date(tracker.last_changed).getTime();
-                    }
-                    if (!isNaN(bootTime)) {
-                      const diffMs = Date.now() - bootTime;
-                      const days = Math.floor(diffMs / 86_400_000);
-                      const hours = Math.floor((diffMs % 86_400_000) / 3_600_000);
-                      const mins = Math.floor((diffMs % 3_600_000) / 60_000);
-                      if (days > 0) uptimeStr = `${days}d ${hours}h`;
-                      else if (hours > 0) uptimeStr = `${hours}h ${mins}m`;
-                      else uptimeStr = `${mins}m`;
-                    }
+                      let uptimeStr = "";
+                      let bootTime = NaN;
+                      if (uptimeEntity && uptimeEntity.state !== "unavailable" && uptimeEntity.state !== "unknown") {
+                        bootTime = new Date(uptimeEntity.state).getTime();
+                      } else if (isOnline && tracker?.last_changed) {
+                        bootTime = new Date(tracker.last_changed).getTime();
+                      }
+                      if (!isNaN(bootTime)) {
+                        const diffMs = Date.now() - bootTime;
+                        const days = Math.floor(diffMs / 86_400_000);
+                        const hours = Math.floor((diffMs % 86_400_000) / 3_600_000);
+                        const mins = Math.floor((diffMs % 3_600_000) / 60_000);
+                        if (days > 0) uptimeStr = `${days}d ${hours}h`;
+                        else if (hours > 0) uptimeStr = `${hours}h ${mins}m`;
+                        else uptimeStr = `${mins}m`;
+                      }
 
-                    return (
-                      <div
-                        key={device.entity_id}
-                        className="flex items-center gap-2 px-3 py-1.5"
-                      >
-                        <Circle
-                          className={`h-2 w-2 shrink-0 ${
-                            isOnline
-                              ? "fill-green-400 text-green-400"
-                              : "fill-red-400 text-red-400"
-                          }`}
-                        />
-                        <span className="min-w-0 flex-1 truncate text-xs font-medium text-white/80">
-                          {device.name}
-                        </span>
-                        {uptimeStr && (
-                          <span className="flex items-center gap-1 text-xs tabular-nums text-white/45">
-                            <Clock className="h-2.5 w-2.5" />
-                            {uptimeStr}
-                          </span>
-                        )}
-                      </div>
-                    );
-                  })
+                      return (
+                        <div key={device.entity_id} className="flex items-center gap-1.5 rounded-md px-1.5 py-1">
+                          <Circle className={`h-1.5 w-1.5 shrink-0 ${isOnline ? "fill-green-400 text-green-400" : "fill-red-400 text-red-400"}`} />
+                          <span className="min-w-0 flex-1 truncate text-[11px] font-medium text-white/75">{device.name}</span>
+                          {uptimeStr && (
+                            <span className="text-[10px] tabular-nums text-white/35 shrink-0">{uptimeStr}</span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 )}
               </GlassCard>
             </section>
