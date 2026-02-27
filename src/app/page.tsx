@@ -129,6 +129,7 @@ interface ImmichQueue {
   waiting: number;
   paused: number;
   failed: number;
+  completed: number;
   isPaused: boolean;
   isActive: boolean;
   pending: number;
@@ -205,6 +206,8 @@ export default function DashboardPage() {
   const [haStates, setHaStates] = useState<HAState[]>([]);
   const [loading, setLoading] = useState(true);
   const [immichQueues, setImmichQueues] = useState<ImmichQueue[]>([]);
+  const [immichJobsPerSec, setImmichJobsPerSec] = useState<number | null>(null);
+  const immichPrevCompleted = useRef<{ total: number; time: number } | null>(null);
   const [evChargeConfirm, setEvChargeConfirm] = useState<"start" | "stop" | null>(null);
   const [immichStats, setImmichStats] = useState<ImmichStats | null>(null);
   const [immichStorage, setImmichStorage] = useState<ImmichStorage | null>(null);
@@ -306,7 +309,19 @@ export default function DashboardPage() {
         const res = await fetch("/api/immich/jobs");
         if (res.ok) {
           const data = await res.json();
-          setImmichQueues(data.queues ?? []);
+          const queues: ImmichQueue[] = data.queues ?? [];
+          setImmichQueues(queues);
+          // Calculate jobs/sec from completed delta
+          const totalCompleted = queues.reduce((s: number, q: ImmichQueue) => s + (q.completed ?? 0), 0);
+          const now = Date.now();
+          if (immichPrevCompleted.current) {
+            const dt = (now - immichPrevCompleted.current.time) / 1000;
+            const dc = totalCompleted - immichPrevCompleted.current.total;
+            if (dt > 0 && dc >= 0) {
+              setImmichJobsPerSec(dc / dt);
+            }
+          }
+          immichPrevCompleted.current = { total: totalCompleted, time: now };
           if (data.stats) setImmichStats(data.stats);
           if (data.storage) setImmichStorage(data.storage);
         }
@@ -862,7 +877,18 @@ export default function DashboardPage() {
                                 })()}
                               </div>
                               <div className="mt-auto flex items-center justify-between border-t border-blue-400/10 pt-1.5">
-                                <span className="text-[10px] font-semibold uppercase tracking-wider text-blue-400/50">Total</span>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[10px] font-semibold uppercase tracking-wider text-blue-400/50">Total</span>
+                                  {immichJobsPerSec !== null && (
+                                    <span className="text-[9px] tabular-nums text-emerald-400/70">
+                                      {immichJobsPerSec >= 1
+                                        ? `${immichJobsPerSec.toFixed(1)} /s`
+                                        : immichJobsPerSec > 0
+                                          ? `${(immichJobsPerSec * 60).toFixed(1)} /m`
+                                          : "idle"}
+                                    </span>
+                                  )}
+                                </div>
                                 <div className="flex items-center gap-1.5">
                                   <span className="text-[10px] font-bold tabular-nums text-yellow-300">{immichQueues.reduce((s, q) => s + q.active, 0).toLocaleString()}</span>
                                   <span className="text-[9px] text-white/20">/</span>

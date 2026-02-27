@@ -72,6 +72,7 @@ export async function GET() {
       waiting: number;
       paused: number;
       failed: number;
+      completed: number;
       isPaused: boolean;
       isActive: boolean;
       pending: number;
@@ -88,6 +89,7 @@ export async function GET() {
             waiting: c.waiting,
             paused: c.paused,
             failed: c.failed,
+            completed: c.completed,
             isPaused: entry.queueStatus.isPaused,
             isActive: entry.queueStatus.isActive,
             pending: c.active + c.waiting + c.paused,
