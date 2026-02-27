@@ -786,9 +786,18 @@ export default function DashboardPage() {
                             <>
                               <div className="space-y-1.5">
                                 {(() => {
-                                  const active = [...immichQueues].filter((q) => !q.isPaused).sort((a, b) => (b.active + b.waiting) - (a.active + a.waiting));
-                                  const paused = [...immichQueues].filter((q) => q.isPaused).sort((a, b) => (b.active + b.waiting) - (a.active + a.waiting));
-                                  return [...active, ...paused].slice(0, 3).map((q) => (
+                                  // Tier 1: active (non-paused) with pending jobs
+                                  // Tier 2: paused with pending jobs
+                                  // Tier 3: empty queues (no pending), active first then paused
+                                  const sorted = [...immichQueues].sort((a, b) => {
+                                    const aPending = a.active + a.waiting;
+                                    const bPending = b.active + b.waiting;
+                                    const aTier = aPending > 0 ? (a.isPaused ? 2 : 1) : (a.isPaused ? 4 : 3);
+                                    const bTier = bPending > 0 ? (b.isPaused ? 2 : 1) : (b.isPaused ? 4 : 3);
+                                    if (aTier !== bTier) return aTier - bTier;
+                                    return bPending - aPending;
+                                  });
+                                  return sorted.slice(0, 3).map((q) => (
                                     <div key={q.name} className="flex items-center justify-between">
                                       <div className="flex items-center gap-1.5 truncate mr-2">
                                         <span className={`text-xs truncate ${q.isPaused ? "text-white/30 italic" : "text-white/50"}`}>{q.name}</span>
