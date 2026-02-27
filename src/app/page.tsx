@@ -207,7 +207,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [immichQueues, setImmichQueues] = useState<ImmichQueue[]>([]);
   const [immichJobsPerSec, setImmichJobsPerSec] = useState<number | null>(null);
-  const immichPrevCompleted = useRef<{ total: number; time: number } | null>(null);
+  const immichPrevSnapshot = useRef<{ waiting: number; active: number; time: number } | null>(null);
   const [evChargeConfirm, setEvChargeConfirm] = useState<"start" | "stop" | null>(null);
   const [immichStats, setImmichStats] = useState<ImmichStats | null>(null);
   const [immichStorage, setImmichStorage] = useState<ImmichStorage | null>(null);
@@ -311,17 +311,24 @@ export default function DashboardPage() {
           const data = await res.json();
           const queues: ImmichQueue[] = data.queues ?? [];
           setImmichQueues(queues);
-          // Calculate jobs/sec from completed delta
-          const totalCompleted = queues.reduce((s: number, q: ImmichQueue) => s + (q.completed ?? 0), 0);
+          // Calculate jobs/sec from waiting+active delta (decrease = jobs completed)
+          const totalWaiting = queues.reduce((s: number, q: ImmichQueue) => s + q.waiting, 0);
+          const totalActive = queues.reduce((s: number, q: ImmichQueue) => s + q.active, 0);
           const now = Date.now();
-          if (immichPrevCompleted.current) {
-            const dt = (now - immichPrevCompleted.current.time) / 1000;
-            const dc = totalCompleted - immichPrevCompleted.current.total;
-            if (dt > 0 && dc >= 0) {
-              setImmichJobsPerSec(dc / dt);
+          if (immichPrevSnapshot.current) {
+            const dt = (now - immichPrevSnapshot.current.time) / 1000;
+            const prevPending = immichPrevSnapshot.current.waiting + immichPrevSnapshot.current.active;
+            const curPending = totalWaiting + totalActive;
+            // Jobs processed = decrease in pending (if pending went down, jobs were completed)
+            const processed = prevPending - curPending;
+            if (dt > 0 && processed > 0) {
+              setImmichJobsPerSec(processed / dt);
+            } else if (dt > 0) {
+              // No decrease (new jobs added or idle) — show 0
+              setImmichJobsPerSec(0);
             }
           }
-          immichPrevCompleted.current = { total: totalCompleted, time: now };
+          immichPrevSnapshot.current = { waiting: totalWaiting, active: totalActive, time: now };
           if (data.stats) setImmichStats(data.stats);
           if (data.storage) setImmichStorage(data.storage);
         }
