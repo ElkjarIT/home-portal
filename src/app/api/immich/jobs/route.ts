@@ -81,6 +81,7 @@ export async function GET() {
         .map(([key, entry]) => {
           const c = entry.jobCounts;
           return {
+            key,
             name: LABELS[key] ?? key,
             active: c.active,
             waiting: c.waiting,
@@ -90,8 +91,7 @@ export async function GET() {
             pending: c.active + c.waiting,
           };
         })
-        .sort((a, b) => b.pending - a.pending)
-        .slice(0, 3);
+        .sort((a, b) => b.pending - a.pending);
     }
 
     // Statistics (photos, videos, per-user)

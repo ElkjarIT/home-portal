@@ -29,6 +29,8 @@ import {
   ListTodo,
   ThermometerSnowflake,
   Power,
+  Search,
+  Play,
 } from "lucide-react";
 
 // ——— Room lights from HA ———
@@ -116,6 +118,7 @@ interface HAState {
 }
 
 interface ImmichQueue {
+  key: string;
   name: string;
   active: number;
   waiting: number;
@@ -702,35 +705,79 @@ export default function DashboardPage() {
                         {/* Section 3: Top 3 job queues */}
                         <div className="relative flex-1 flex flex-col rounded-r-lg border border-white/[0.06] bg-white/[0.03] p-3 transition-colors duration-300 group-hover:border-blue-400/15 group-hover:bg-blue-500/[0.04]">
                           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-400/20 to-transparent" />
-                          <p className="mb-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-blue-400/70">
-                            <ListTodo className="h-3 w-3" /> Jobs
-                          </p>
+                          <div className="mb-2 flex items-center gap-1.5">
+                            <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-blue-400/70">
+                              <ListTodo className="h-3 w-3" /> Jobs
+                            </p>
+                            {/* Action buttons */}
+                            <div className="ml-auto flex items-center gap-1">
+                              <button
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  fetch("/api/immich/jobs/command", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ jobName: "smartSearch", command: "start", force: false }),
+                                  });
+                                }}
+                                className="flex h-5 w-5 items-center justify-center rounded bg-blue-500/10 text-blue-400/70 hover:bg-blue-500/20 hover:text-blue-300 active:scale-90 transition-all"
+                                title="Start Smart Search"
+                              >
+                                <Search className="h-2.5 w-2.5" />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  fetch("/api/immich/jobs/command", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ jobName: "__all__", command: "start", force: false }),
+                                  });
+                                }}
+                                className="flex h-5 w-5 items-center justify-center rounded bg-green-500/10 text-green-400/70 hover:bg-green-500/20 hover:text-green-300 active:scale-90 transition-all"
+                                title="Start All Missing"
+                              >
+                                <Play className="h-2.5 w-2.5" />
+                              </button>
+                            </div>
+                          </div>
                           {immichQueues.length > 0 ? (
                             <>
                               <div className="space-y-1.5">
                                 {[...immichQueues]
                                   .sort((a, b) => (b.active + b.waiting) - (a.active + a.waiting))
                                   .slice(0, 3)
-                                  .map((q) => {
-                                    const total = q.active + q.waiting;
-                                    return (
-                                      <div key={q.name} className="flex items-center justify-between">
-                                        <span className="text-xs text-white/50 truncate mr-2">{q.name}</span>
-                                        {total > 0 ? (
-                                          <span className="flex items-center gap-1 text-xs font-semibold tabular-nums text-yellow-300">
-                                            <span className="inline-block h-1.5 w-1.5 rounded-full bg-yellow-400 animate-pulse" />
-                                            {total}
+                                  .map((q) => (
+                                    <div key={q.name} className="flex items-center justify-between">
+                                      <span className="text-xs text-white/50 truncate mr-2">{q.name}</span>
+                                      <div className="flex items-center gap-1.5">
+                                        {q.active > 0 ? (
+                                          <span className="flex items-center gap-0.5 text-[10px] font-semibold tabular-nums text-yellow-300">
+                                            <span className="inline-block h-1 w-1 rounded-full bg-yellow-400 animate-pulse" />
+                                            {q.active}
                                           </span>
                                         ) : (
-                                          <span className="text-xs tabular-nums text-white/35">{total}</span>
+                                          <span className="text-[10px] tabular-nums text-white/25">0</span>
+                                        )}
+                                        <span className="text-[9px] text-white/20">/</span>
+                                        {q.waiting > 0 ? (
+                                          <span className="text-[10px] font-semibold tabular-nums text-blue-300">{q.waiting}</span>
+                                        ) : (
+                                          <span className="text-[10px] tabular-nums text-white/25">0</span>
                                         )}
                                       </div>
-                                    );
-                                  })}
+                                    </div>
+                                  ))}
                               </div>
                               <div className="mt-auto flex items-center justify-between border-t border-blue-400/10 pt-1.5">
                                 <span className="text-[10px] font-semibold uppercase tracking-wider text-blue-400/50">Total</span>
-                                <span className="text-xs font-bold tabular-nums text-blue-300">{immichQueues.reduce((s, q) => s + q.active + q.waiting, 0).toLocaleString()}</span>
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-[10px] font-bold tabular-nums text-yellow-300">{immichQueues.reduce((s, q) => s + q.active, 0).toLocaleString()}</span>
+                                  <span className="text-[9px] text-white/20">/</span>
+                                  <span className="text-[10px] font-bold tabular-nums text-blue-300">{immichQueues.reduce((s, q) => s + q.waiting, 0).toLocaleString()}</span>
+                                </div>
                               </div>
                             </>
                           ) : (
