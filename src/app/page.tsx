@@ -211,7 +211,14 @@ export default function DashboardPage() {
 
   // Helper: call a Home Assistant service via our API
   async function callHaService(domain: string, service: string, entity_id: string) {
-    setTogglingEntities((prev) => new Set(prev).add(entity_id));
+    // Also track the media_player entity when toggling the remote (for Apple TV)
+    const relatedEntity = entity_id === "remote.stuen_tv" ? APPLE_TV_ENTITY : null;
+    setTogglingEntities((prev) => {
+      const next = new Set(prev);
+      next.add(entity_id);
+      if (relatedEntity) next.add(relatedEntity);
+      return next;
+    });
     try {
       const res = await fetch("/api/ha/services", {
         method: "POST",
@@ -220,13 +227,20 @@ export default function DashboardPage() {
       });
       if (res.ok) {
         // Optimistically update local state
-        setHaStates((prev) =>
-          prev.map((e) =>
-            e.entity_id === entity_id
-              ? { ...e, state: service.includes("turn_on") ? "on" : service.includes("turn_off") ? "off" : e.state }
-              : e
-          )
-        );
+        const newState = service.includes("turn_on") ? "on" : service.includes("turn_off") ? "off" : null;
+        if (newState) {
+          setHaStates((prev) =>
+            prev.map((e) => {
+              if (e.entity_id === entity_id) return { ...e, state: newState };
+              // When turning off remote.stuen_tv, also set media_player to "off"
+              // When turning on media_player, it goes to "idle"
+              if (relatedEntity && e.entity_id === relatedEntity) {
+                return { ...e, state: newState === "off" ? "off" : "idle" };
+              }
+              return e;
+            })
+          );
+        }
       }
     } catch {
       // ignore
@@ -234,6 +248,7 @@ export default function DashboardPage() {
       setTogglingEntities((prev) => {
         const next = new Set(prev);
         next.delete(entity_id);
+        if (relatedEntity) next.delete(relatedEntity);
         return next;
       });
     }
@@ -489,7 +504,7 @@ export default function DashboardPage() {
                       <span className="text-sm font-medium text-white">Apple TV</span>
                       {/* Power toggle */}
                       {!loading && (() => {
-                        const isOff = appleTvState === "off" || appleTvState === "standby" || appleTvState === "idle" || appleTvState === "unknown" || !appleTvState;
+                        const isOff = appleTvState === "off" || appleTvState === "unknown" || !appleTvState;
                         return (
                           <button
                             onClick={() => {
@@ -523,7 +538,7 @@ export default function DashboardPage() {
                         : appleTvState === "paused"
                           ? "border-yellow-400/25 shadow-[0_0_10px_rgba(250,204,21,0.08)]"
                           : appleTvState === "idle" || appleTvState === "standby"
-                            ? "border-white/[0.08]"
+                            ? "border-purple-400/20 animate-tv-glow-idle"
                             : "border-white/[0.05]"
                     }`}>
                       {/* Screen background */}
@@ -533,7 +548,7 @@ export default function DashboardPage() {
                           : appleTvState === "paused"
                             ? "bg-gradient-to-br from-yellow-900/20 via-amber-800/15 to-orange-900/20"
                             : appleTvState === "idle" || appleTvState === "standby"
-                              ? "bg-gradient-to-b from-slate-800/30 to-slate-900/40"
+                              ? "bg-gradient-to-br from-indigo-900/25 via-purple-900/20 to-slate-900/30 bg-[length:300%_300%] animate-tv-idle-drift"
                               : "bg-black/40"
                       }`} />
                       {/* Scanline effect when playing */}
@@ -542,8 +557,16 @@ export default function DashboardPage() {
                           <div className="animate-tv-scanline absolute inset-x-0 h-[2px] bg-white/[0.04]" />
                         </div>
                       )}
+                      {/* Floating orbs when idle/standby — screensaver effect */}
+                      {(appleTvState === "idle" || appleTvState === "standby") && (
+                        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                          <div className="absolute h-16 w-16 rounded-full bg-purple-500/10 blur-xl animate-tv-orb-1" />
+                          <div className="absolute h-12 w-12 rounded-full bg-indigo-400/10 blur-xl animate-tv-orb-2" />
+                          <div className="absolute h-10 w-10 rounded-full bg-blue-500/8 blur-lg animate-tv-orb-3" />
+                        </div>
+                      )}
                       {/* Static noise when off */}
-                      {appleTvState === "off" && (
+                      {(appleTvState === "off" || appleTvState === "unknown") && (
                         <div className="absolute inset-0 animate-tv-static" style={{
                           backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E\")",
                           backgroundSize: "100px 100px"
@@ -578,8 +601,17 @@ export default function DashboardPage() {
                           </>
                         ) : appleTvState === "idle" || appleTvState === "standby" ? (
                           <>
-                            <Tv className="h-5 w-5 text-white/20 mb-1" />
-                            <span className="text-[10px] text-white/35">{appleTvApp || "Standby"}</span>
+                            <div className="relative mb-1.5">
+                              <Tv className="h-5 w-5 text-purple-300/50" />
+                              <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400/40" />
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-400/70" />
+                              </span>
+                            </div>
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-purple-300/60">Idle</span>
+                            {appleTvApp && (
+                              <p className="text-[10px] text-white/30 mt-0.5">{appleTvApp}</p>
+                            )}
                           </>
                         ) : (
                           <>
