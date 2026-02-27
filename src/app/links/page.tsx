@@ -14,7 +14,7 @@ import {
   Container,
 } from "lucide-react";
 import Link from "next/link";
-import { generalLinks, adminLinks } from "@/data/links";
+import { generalLinks } from "@/data/links";
 
 function GlassCard({
   children,
@@ -48,7 +48,7 @@ export default function LinksPage() {
 
         {/* Page header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-white">Links</h1>
+          <h1 className="text-2xl font-bold text-white">Home Services</h1>
           <p className="mt-1 text-sm text-white/55">
             Quick access to all services and tools
           </p>
@@ -161,72 +161,17 @@ export default function LinksPage() {
           </div>
         </section>
 
-        {/* ——— Admin Panel ——— */}
+        {/* Admin link */}
         {isAdmin && (
           <section className="mb-8">
-            <div className="mb-4 flex items-center gap-2">
-              <Shield className="h-4 w-4 text-red-400" />
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-red-400/70">
-                Admin Panel
-              </h2>
-              <span className="ml-2 rounded-full border border-red-500/30 bg-red-500/15 px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-red-400">
-                Restricted
-              </span>
-            </div>
-            <div className="rounded-2xl border-2 border-red-500/40 bg-red-950/25 shadow-[0_0_15px_rgba(239,68,68,0.08)] backdrop-blur-xl">
-              <div className="grid grid-cols-1 gap-0 divide-y divide-red-500/10 sm:grid-cols-2 sm:divide-y-0">
-                {adminLinks.map((link) => {
-                  const Icon = link.icon;
-
-                  if (link.children) {
-                    return (
-                      <div
-                        key={link.name}
-                        className="sm:col-span-2 grid grid-cols-2 divide-x divide-red-500/10 border-b border-red-500/10 last:border-b-0"
-                      >
-                        {link.children.map((child) => (
-                          <a
-                            key={child.name}
-                            href={child.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-3 p-4 transition-colors hover:bg-white/[0.06]"
-                          >
-                            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${link.iconBg}`}>
-                              <Icon className={`h-5 w-5 ${link.iconColor}`} />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <p className="text-sm font-semibold text-white">{link.name} — {child.name}</p>
-                              <p className="truncate text-xs text-white/55">{child.url.replace(/^https?:\/\//, "").replace(/\/admin$/, "")}</p>
-                            </div>
-                            <ExternalLink className="h-4 w-4 shrink-0 text-white/35" />
-                          </a>
-                        ))}
-                      </div>
-                    );
-                  }
-
-                  return (
-                    <a
-                      key={link.name}
-                      href={link.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-3 p-4 transition-colors hover:bg-white/[0.06] border-b border-red-500/10 last:border-b-0 sm:odd:border-r sm:odd:border-r-red-500/10"
-                    >
-                      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${link.iconBg}`}>
-                        <Icon className={`h-5 w-5 ${link.iconColor}`} />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold text-white">{link.name}</p>
-                        <p className="truncate text-xs text-white/55">{link.description}</p>
-                      </div>
-                      <ExternalLink className="h-4 w-4 shrink-0 text-white/35" />
-                    </a>
-                  );
-                })}
-              </div>
-            </div>
+            <Link
+              href="/admin"
+              className="inline-flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-sm font-semibold text-red-300 transition-all hover:bg-red-500/20 hover:border-red-500/40"
+            >
+              <Shield className="h-4 w-4" />
+              Open Admin Panel
+              <ChevronRight className="h-3.5 w-3.5" />
+            </Link>
           </section>
         )}
       </div>

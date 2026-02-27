@@ -11,7 +11,7 @@ import {
   ChevronDown,
   Shield,
 } from "lucide-react";
-import { generalLinks, adminLinks } from "@/data/links";
+import { generalLinks } from "@/data/links";
 
 const tabs = [
   { name: "Dashboard", href: "/", icon: Home },
@@ -41,9 +41,10 @@ export function TopNav() {
   };
 
   const linksActive = pathname === "/links";
+  const adminActive = pathname === "/admin";
 
   return (
-    <nav className="mb-6">
+    <nav className="relative z-50 mb-6">
       <div className="flex items-center justify-between rounded-2xl border border-white/[0.08] bg-white/[0.04] px-4 py-2 backdrop-blur-xl">
         {/* Left: Logo + tabs */}
         <div className="flex items-center gap-6">
@@ -78,7 +79,7 @@ export function TopNav() {
               );
             })}
 
-            {/* Links tab with hover dropdown */}
+            {/* Home Services tab with hover dropdown */}
             <div
               ref={containerRef}
               className="relative"
@@ -94,7 +95,7 @@ export function TopNav() {
                 }`}
               >
                 <ExternalLink className="h-3.5 w-3.5" />
-                Links
+                Home Services
                 <ChevronDown
                   className={`h-3 w-3 transition-transform ${
                     dropdownOpen ? "rotate-180" : ""
@@ -105,7 +106,7 @@ export function TopNav() {
               {/* Hover dropdown */}
               {dropdownOpen && (
                 <div
-                  className="absolute left-0 top-full z-50 mt-1 min-w-[280px] rounded-xl border border-white/[0.1] bg-black/80 p-2 shadow-2xl backdrop-blur-2xl"
+                  className="absolute left-0 top-full z-[100] mt-1 min-w-[280px] rounded-xl border border-white/[0.1] bg-black/90 p-2 shadow-2xl backdrop-blur-2xl"
                   onMouseEnter={openDropdown}
                   onMouseLeave={closeDropdown}
                 >
@@ -133,52 +134,6 @@ export function TopNav() {
                     })}
                   </div>
 
-                  {/* Admin links (if admin) */}
-                  {isAdmin && (
-                    <>
-                      <div className="mx-2 my-1 border-t border-red-500/20" />
-                      <div>
-                        <p className="flex items-center gap-1 px-2 py-1 text-xs font-semibold uppercase tracking-wider text-red-400/60">
-                          <Shield className="h-2.5 w-2.5" />
-                          Admin
-                        </p>
-                        {adminLinks.map((link) => {
-                          const Icon = link.icon;
-                          if (link.children) {
-                            return link.children.map((child) => (
-                              <a
-                                key={child.name}
-                                href={child.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-2.5 rounded-lg px-2 py-2 text-sm text-white/80 transition-colors hover:bg-white/[0.08] hover:text-white"
-                              >
-                                <div className={`flex h-6 w-6 items-center justify-center rounded-md ${link.iconBg}`}>
-                                  <Icon className={`h-3.5 w-3.5 ${link.iconColor}`} />
-                                </div>
-                                {link.name} — {child.name}
-                              </a>
-                            ));
-                          }
-                          return (
-                            <a
-                              key={link.name}
-                              href={link.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center gap-2.5 rounded-lg px-2 py-2 text-sm text-white/80 transition-colors hover:bg-white/[0.08] hover:text-white"
-                            >
-                              <div className={`flex h-6 w-6 items-center justify-center rounded-md ${link.iconBg}`}>
-                                <Icon className={`h-3.5 w-3.5 ${link.iconColor}`} />
-                              </div>
-                              {link.name}
-                            </a>
-                          );
-                        })}
-                      </div>
-                    </>
-                  )}
-
                   {/* Footer link to full page */}
                   <div className="mx-2 mt-1 border-t border-white/[0.06] pt-1">
                     <Link
@@ -186,13 +141,28 @@ export function TopNav() {
                       className="flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-medium text-white/55 transition-colors hover:bg-white/[0.06] hover:text-white/80"
                       onClick={() => setDropdownOpen(false)}
                     >
-                      View all links
+                      View all services
                       <ExternalLink className="h-3 w-3" />
                     </Link>
                   </div>
                 </div>
               )}
             </div>
+
+            {/* Admin tab (separate, admin only) */}
+            {isAdmin && (
+              <Link
+                href="/admin"
+                className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                  adminActive
+                    ? "bg-red-500/15 text-red-300 ring-1 ring-red-500/20"
+                    : "text-red-400/60 hover:bg-red-500/10 hover:text-red-300"
+                }`}
+              >
+                <Shield className="h-3.5 w-3.5" />
+                Admin
+              </Link>
+            )}
           </div>
         </div>
 

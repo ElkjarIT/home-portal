@@ -1016,7 +1016,7 @@ export default function DashboardPage() {
                                 className={`ml-auto flex h-7 items-center gap-1.5 rounded-lg px-3 text-[11px] font-bold uppercase tracking-wider transition-all duration-200 active:scale-90 ring-1 ${
                                   chargeEnabled
                                     ? "bg-green-500/20 text-green-400 ring-green-400/25 hover:bg-red-500/20 hover:text-red-400 hover:ring-red-400/25 shadow-[0_0_10px_rgba(74,222,128,0.1)]"
-                                    : "bg-white/[0.06] text-white/50 ring-white/[0.10] hover:bg-green-500/20 hover:text-green-400 hover:ring-green-400/25"
+                                    : "bg-yellow-500/15 text-yellow-300 ring-yellow-400/20 hover:bg-yellow-500/25 hover:text-yellow-200 hover:ring-yellow-400/30 shadow-[0_0_10px_rgba(234,179,8,0.08)]"
                                 }`}
                                 title={chargeEnabled ? "Stop charging" : "Start charging"}
                               >
