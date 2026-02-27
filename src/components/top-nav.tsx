@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { UserNav } from "@/components/user-nav";
@@ -16,6 +16,7 @@ import { generalLinks, adminLinks } from "@/data/links";
 
 export function TopNav() {
   const pathname = usePathname();
+  const router = useRouter();
   const { data: session } = useSession();
   const isAdmin = (session?.user as { isAdmin?: boolean })?.isAdmin ?? false;
 
@@ -68,14 +69,21 @@ export function TopNav() {
             <span className="text-sm font-bold text-white hidden sm:block">Home Portal</span>
           </Link>
 
-          {/* Visible tabs — hover any to open dropdown */}
+          {/* Visible tabs — first click opens dropdown, second click navigates */}
           <div className="flex items-center gap-1" onMouseEnter={openMenu} onMouseLeave={closeMenu}>
             {tabs.map((tab) => {
               const Icon = tab.icon;
               return (
-                <Link
+                <button
                   key={tab.key}
-                  href={tab.href}
+                  onClick={() => {
+                    if (!open) {
+                      openMenu();
+                    } else {
+                      setOpen(false);
+                      router.push(tab.href);
+                    }
+                  }}
                   className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-200 ${
                     tab.active
                       ? `${tab.bg} ${tab.color}`
@@ -84,7 +92,7 @@ export function TopNav() {
                 >
                   <Icon className="h-3.5 w-3.5" />
                   <span className="hidden sm:inline">{tab.label}</span>
-                </Link>
+                </button>
               );
             })}
             <button
