@@ -17,7 +17,7 @@ import {
 import { generalLinks, adminLinks } from "@/data/links";
 
 // Primary admin links (shown directly) vs secondary (in "More" submenu)
-const PRIMARY_ADMIN = new Set(["UniFi Network", "Proxmox VE", "NAS", "Nginx Proxy", "Pi-hole", "Portainer", "Entra ID"]);
+const PRIMARY_ADMIN = new Set(["UniFi Network", "Proxmox VE", "NAS", "Nginx Proxy", "Pi-hole", "Portainer", "Entra ID", "Root CA Setup"]);
 
 export function TopNav() {
   const pathname = usePathname();
@@ -240,6 +240,19 @@ export function TopNav() {
                           </div>
                         );
                       }
+                      if (link.internal) {
+                        return (
+                          <Link
+                            key={link.name}
+                            href={link.url}
+                            onClick={() => setOpen(false)}
+                            className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs text-white/70 transition-colors hover:bg-white/[0.07] hover:text-white"
+                          >
+                            <Icon className={`h-3 w-3 shrink-0 ${link.iconColor}`} />
+                            <span className="font-medium truncate">{link.name}</span>
+                          </Link>
+                        );
+                      }
                       return (
                         <a
                           key={link.name}
@@ -269,6 +282,19 @@ export function TopNav() {
                         <div className="mt-1 grid grid-cols-2 gap-1">
                           {secondary.map((link) => {
                             const Icon = link.icon;
+                            if (link.internal) {
+                              return (
+                                <Link
+                                  key={link.name}
+                                  href={link.url}
+                                  onClick={() => setOpen(false)}
+                                  className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs text-white/70 transition-colors hover:bg-white/[0.07] hover:text-white"
+                                >
+                                  <Icon className={`h-3 w-3 shrink-0 ${link.iconColor}`} />
+                                  <span className="font-medium truncate">{link.name}</span>
+                                </Link>
+                              );
+                            }
                             return (
                               <a
                                 key={link.name}

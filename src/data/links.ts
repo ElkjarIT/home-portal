@@ -13,6 +13,7 @@ import {
   Container,
   Film,
   BookOpen,
+  ShieldCheck,
   type LucideIcon,
   ImageIcon,
 } from "lucide-react";
@@ -25,6 +26,7 @@ export interface ServiceLink {
   iconBg: string;
   iconColor: string;
   children?: { name: string; url: string }[];
+  internal?: boolean; // true = internal Next.js route (use Link instead of <a>)
 }
 
 // ——— General / External service links ———
@@ -148,6 +150,15 @@ export const adminLinks: ServiceLink[] = [
     icon: Cloud,
     iconBg: "bg-orange-500/20",
     iconColor: "text-orange-400",
+  },
+  {
+    name: "Root CA Setup",
+    description: "Install certificate on devices",
+    url: "/setup",
+    icon: ShieldCheck,
+    iconBg: "bg-teal-500/20",
+    iconColor: "text-teal-400",
+    internal: true,
   },
   {
     name: "Documentation",
