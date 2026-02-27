@@ -442,7 +442,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen">
 
-      <div className="mx-auto max-w-[1600px] px-3 py-3 sm:px-4 lg:px-6">
+      <div className="px-3 py-3 sm:px-4 lg:px-6">
         <TopNav />
 
         {/* ——— Welcome Banner ——— */}
@@ -462,10 +462,8 @@ export default function DashboardPage() {
           </div>
         </GlassCard>
 
-        {/* ——— Two-column grid ——— */}
-        <div className="grid grid-cols-1 gap-3 lg:grid-cols-[1fr_340px]">
-          {/* === LEFT COLUMN === */}
-          <div className="space-y-3">
+        {/* ——— Main content ——— */}
+        <div className="mx-auto max-w-6xl space-y-3 flex flex-col items-center">
             {/* — SMART HOME DEVICES — */}
             <section>
               <SectionLabel icon={Wifi} iconColor="text-sky-400">
@@ -473,9 +471,9 @@ export default function DashboardPage() {
               </SectionLabel>
               <div className="space-y-2">
                 {/* Room Lights + Climate side by side */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-2">
-                  {/* Room Lights — 2/3 */}
-                  <GlassCard className="p-3 lg:col-span-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 justify-center">
+                  {/* Room Lights */}
+                  <GlassCard className="p-3">
                     <div className="flex items-center gap-2 mb-2">
                       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-500/20">
                         <Lightbulb className="h-5 w-5 text-amber-400" />
@@ -490,7 +488,7 @@ export default function DashboardPage() {
                         <span className="text-[10px] text-white/40">/ {ROOM_LIGHTS.length} on</span>
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-x-3 gap-y-1 sm:grid-cols-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-x-3 gap-y-1">
                       {ROOM_LIGHTS.map((room) => {
                         const state = lights.find((l) => l.entity_id === room.entity_id);
                         const isOn = state?.state === "on";
@@ -585,8 +583,8 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Apple TV + Immich side by side */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-2">
-                  {/* Apple TV — 1/3 with TV screen visual */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 justify-center">
+                  {/* Apple TV */}
                   <GlassCard className="p-3 flex flex-col">
                     <div className="flex items-center gap-2 mb-2">
                       <Tv className="h-4 w-4 text-slate-300" />
@@ -721,7 +719,7 @@ export default function DashboardPage() {
                   href="https://immich.aser.dk"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group lg:col-span-2"
+                  className="group"
                 >
                   <GlassCard className="h-full p-3 transition-all duration-300 hover:bg-white/[0.12] hover:shadow-[0_0_24px_rgba(59,130,246,0.08)]">
                     {/* Header */}
@@ -1047,8 +1045,14 @@ export default function DashboardPage() {
                           const totalItems = [personal, shared].reduce((sum, c) => sum + (c?.logs.totalInCloud ?? 0), 0);
                           const totalDownloaded = [personal, shared].reduce((sum, c) => sum + (c?.logs.filesDownloaded ?? 0), 0);
                           const totalDeleted = [personal, shared].reduce((sum, c) => sum + (c?.logs.filesDeleted ?? 0), 0);
-                          const lastSync = personal?.logs.lastSyncEnd ?? shared?.logs.lastSyncEnd;
-                          const nextSync = personal?.logs.nextSyncAt ?? shared?.logs.nextSyncAt;
+                          // Pick the most recent sync end across personal + shared
+                          const lastSync = [personal?.logs.lastSyncEnd, shared?.logs.lastSyncEnd]
+                            .filter(Boolean)
+                            .sort((a, b) => new Date(b!).getTime() - new Date(a!).getTime())[0] ?? null;
+                          // Pick the soonest upcoming next sync
+                          const nextSync = [personal?.logs.nextSyncAt, shared?.logs.nextSyncAt]
+                            .filter(Boolean)
+                            .sort((a, b) => new Date(a!).getTime() - new Date(b!).getTime())[0] ?? null;
                           const hasErrors = [personal, shared].some(c => c && c.logs.errors.length > 0);
 
                           return (
@@ -1202,7 +1206,7 @@ export default function DashboardPage() {
                     })()}
 
                     {/* Bilskirner + 7-day chart side by side */}
-                    <div className="mb-3 grid grid-cols-1 gap-2 lg:grid-cols-2">
+                    <div className="mb-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 justify-center">
                     {/* EV Charger — Bilskirner (hero section) */}
                     {(() => {
                       const chargingBin = haStates.find((e) => e.entity_id === "binary_sensor.bilskirner_charging");
@@ -1451,7 +1455,8 @@ export default function DashboardPage() {
                       const todayStr = new Date().toISOString().split("T")[0];
                       return (
                         <div className="rounded-lg bg-white/[0.03] p-2.5">
-                          <div className="mb-2 flex items-center justify-between">
+                          {/* Header */}
+                          <div className="mb-3 flex items-center justify-between">
                             <p className="text-xs font-semibold uppercase tracking-wider text-white/50">
                               <BarChart3 className="mr-1 inline h-3 w-3 -translate-y-px" />
                               Daily Consumption
@@ -1459,14 +1464,8 @@ export default function DashboardPage() {
                             <span className="text-xs tabular-nums text-white/40">avg {avgKwh.toFixed(1)} kWh</span>
                           </div>
 
-                          {/* Bar chart area */}
-                          <div className="relative flex items-end gap-1.5" style={{ height: 72 }}>
-                            {/* Avg reference line */}
-                            <div
-                              className="pointer-events-none absolute left-0 right-0 border-t border-dashed border-white/[0.07]"
-                              style={{ bottom: `${(avgKwh / maxKwh) * 100}%` }}
-                            />
-
+                          {/* Bar chart — separated into value row, bar row, label row */}
+                          <div className="flex gap-1.5">
                             {last7.map((d) => {
                               const pct = (d.kwh / maxKwh) * 100;
                               const isToday = d.date === todayStr;
@@ -1474,9 +1473,9 @@ export default function DashboardPage() {
 
                               return (
                                 <div key={d.date} className="flex flex-1 flex-col items-center gap-1">
-                                  {/* kWh value on top */}
+                                  {/* kWh value */}
                                   <span
-                                    className={`text-xs font-semibold tabular-nums ${
+                                    className={`text-[11px] font-semibold tabular-nums leading-none ${
                                       isToday ? "text-green-300" : "text-white/60"
                                     }`}
                                   >
@@ -1484,7 +1483,12 @@ export default function DashboardPage() {
                                   </span>
 
                                   {/* Bar */}
-                                  <div className="relative flex w-full items-end justify-center" style={{ height: 48 }}>
+                                  <div className="relative flex w-full items-end justify-center" style={{ height: 52 }}>
+                                    {/* Avg reference line */}
+                                    <div
+                                      className="pointer-events-none absolute left-0 right-0 border-t border-dashed border-white/[0.10]"
+                                      style={{ bottom: `${(avgKwh / maxKwh) * 100}%` }}
+                                    />
                                     <div
                                       className={`w-full rounded-md transition-all duration-500 ${
                                         isToday
@@ -1497,7 +1501,7 @@ export default function DashboardPage() {
 
                                   {/* Day label */}
                                   <span
-                                    className={`text-xs font-medium ${
+                                    className={`text-[11px] font-medium leading-none ${
                                       isToday ? "text-green-300" : "text-white/45"
                                     }`}
                                   >
@@ -1513,7 +1517,7 @@ export default function DashboardPage() {
                     </div>
 
                     {/* Today's usage + Live power side by side */}
-                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 justify-center">
                     {/* Today's usage per device */}
                     {deviceToday.length > 0 && (
                       <div className="rounded-lg bg-white/[0.03] p-2.5">
@@ -1572,7 +1576,7 @@ export default function DashboardPage() {
             </section>
 
             {/* — PRINTER + INFRASTRUCTURE (side by side) — */}
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 justify-center">
             <section>
               <SectionLabel icon={Printer} iconColor="text-orange-400">
                 Canon Printer
@@ -1744,11 +1748,6 @@ export default function DashboardPage() {
                 </div>
               </GlassCard>
             </section>
-          </div>
-
-          {/* === RIGHT COLUMN === */}
-          <div className="space-y-3">
-          </div>
         </div>
 
         {/* ——— Footer ——— */}
