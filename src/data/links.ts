@@ -8,6 +8,7 @@ import {
   Cloud,
   Github,
   Wifi,
+  Mail,
   type LucideIcon,
   ImageIcon,
 } from "lucide-react";
@@ -33,10 +34,18 @@ export const generalLinks: ServiceLink[] = [
     iconColor: "text-blue-400",
   },
   {
-    name: "Entra ID",
-    description: "Microsoft identity & access",
-    url: "https://portal.azure.com/#view/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/~/Overview",
-    icon: Users,
+    name: "Home Assistant",
+    description: "Dashboard & automations",
+    url: "https://ha.aser.dk",
+    icon: Home,
+    iconBg: "bg-sky-500/20",
+    iconColor: "text-sky-400",
+  },
+  {
+    name: "Outlook",
+    description: "Email & calendar",
+    url: "https://outlook.office.com",
+    icon: Mail,
     iconBg: "bg-blue-600/20",
     iconColor: "text-blue-400",
   },
@@ -61,12 +70,12 @@ export const generalLinks: ServiceLink[] = [
 // ——— Admin-only links ———
 export const adminLinks: ServiceLink[] = [
   {
-    name: "Home Assistant",
-    description: "Dashboard & automations",
-    url: "https://ha.aser.dk",
-    icon: Home,
-    iconBg: "bg-sky-500/20",
-    iconColor: "text-sky-400",
+    name: "Entra ID",
+    description: "Microsoft identity & access",
+    url: "https://portal.azure.com/#view/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/~/Overview",
+    icon: Users,
+    iconBg: "bg-blue-600/20",
+    iconColor: "text-blue-400",
   },
   {
     name: "Pi-hole",
