@@ -1109,8 +1109,8 @@ export default function DashboardPage() {
                                 {/* iCloud library size */}
                                 {totalItems > 0 && (
                                   <div className="flex items-center justify-between">
-                                    <span className="text-xs text-white/45">iCloud Photos</span>
-                                    <span className="text-xs font-medium tabular-nums text-white/75">{totalItems.toLocaleString()}</span>
+                                    <span className="text-xs text-white/45">Library Size</span>
+                                    <span className="text-xs font-medium tabular-nums text-white/75">{totalItems.toLocaleString()} items in iCloud</span>
                                   </div>
                                 )}
 
