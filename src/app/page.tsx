@@ -36,6 +36,11 @@ import {
   Navigation,
   Cable,
   Gauge,
+  CloudDownload,
+  RefreshCw,
+  AlertTriangle,
+  User,
+  CheckCircle2,
 } from "lucide-react";
 
 // ——— Room lights from HA ———
@@ -158,6 +163,41 @@ interface DeviceEnergy {
   kwh: number;
 }
 
+interface ICloudPDContainer {
+  name: string;
+  status: string;
+  running: boolean;
+  startedAt?: string;
+  health?: string;
+  logs: {
+    lastSyncStart: string | null;
+    lastSyncEnd: string | null;
+    lastSyncResult: string | null;
+    filesDownloaded: number;
+    filesDeleted: number;
+    totalInCloud: number | null;
+    totalTime: string | null;
+    nextSyncAt: string | null;
+    cookieExpiry: string | null;
+    cookieDaysLeft: number | null;
+    cookieWarning: boolean;
+    errors: string[];
+    syncing: boolean;
+    user: string | null;
+  };
+}
+
+interface ICloudPDStatus {
+  timestamp: string;
+  summary: {
+    total: number;
+    running: number;
+    syncing: number;
+    cookieWarnings: number;
+  };
+  containers: ICloudPDContainer[];
+}
+
 // ——— Helper Components ———
 
 function GlassCard({
@@ -217,6 +257,8 @@ export default function DashboardPage() {
   const [deviceToday, setDeviceToday] = useState<DeviceEnergy[]>([]);
   const [energyLoading, setEnergyLoading] = useState(true);
   const [togglingEntities, setTogglingEntities] = useState<Set<string>>(new Set());
+  const [icloudpdStatus, setIcloudpdStatus] = useState<ICloudPDStatus | null>(null);
+  const [icloudpdLoading, setIcloudpdLoading] = useState(true);
 
   // Helper: call a Home Assistant service via our API
   async function callHaService(domain: string, service: string, entity_id: string) {
@@ -340,6 +382,25 @@ export default function DashboardPage() {
     }
     fetchImmichJobs();
     const iv = setInterval(fetchImmichJobs, 10_000);
+    return () => clearInterval(iv);
+  }, []);
+
+  // Fetch iCloudPD status
+  useEffect(() => {
+    async function fetchICloudPD() {
+      try {
+        const res = await fetch("/api/icloudpd/status");
+        if (res.ok) {
+          setIcloudpdStatus(await res.json());
+        }
+      } catch {
+        // ignore
+      } finally {
+        setIcloudpdLoading(false);
+      }
+    }
+    fetchICloudPD();
+    const iv = setInterval(fetchICloudPD, 30_000);
     return () => clearInterval(iv);
   }, []);
 
@@ -913,6 +974,167 @@ export default function DashboardPage() {
                 </a>
                 </div>
 
+                {/* iCloudPD card — full width */}
+                <GlassCard className="p-3">
+                  <div className="mb-2 flex items-center gap-2">
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-purple-500/20">
+                      <CloudDownload className="h-4 w-4 text-purple-400" />
+                    </div>
+                    <span className="text-sm font-medium text-white">iCloudPD</span>
+                    {icloudpdStatus && icloudpdStatus.summary.cookieWarnings > 0 && (
+                      <span className="ml-auto flex items-center gap-1 rounded-full bg-orange-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-orange-400">
+                        <AlertTriangle className="h-3 w-3" /> Cookie
+                      </span>
+                    )}
+                    {icloudpdStatus && icloudpdStatus.summary.syncing > 0 && (
+                      <span className={`${icloudpdStatus.summary.cookieWarnings > 0 ? '' : 'ml-auto'} flex items-center gap-1 rounded-full bg-blue-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue-400`}>
+                        <RefreshCw className="h-3 w-3 animate-spin" /> Syncing
+                      </span>
+                    )}
+                  </div>
+
+                  {icloudpdLoading ? (
+                    <div className="flex items-center gap-2 text-xs text-white/45">
+                      <Loader2 className="h-3 w-3 animate-spin" /> Loading…
+                    </div>
+                  ) : !icloudpdStatus ? (
+                    <p className="text-xs text-white/40">Status API unreachable</p>
+                  ) : (
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                      {icloudpdStatus.containers.map((c) => {
+                        // Derive display name: strip "icloudpd-" prefix
+                        const displayName = c.name.replace(/^icloudpd-/, "").replace(/-/g, " ");
+                        const isShared = c.name.includes("shared");
+
+                        // Relative time helper
+                        const relTime = (iso: string | null) => {
+                          if (!iso) return null;
+                          try {
+                            const ms = Date.now() - new Date(iso).getTime();
+                            if (ms < 0) return "just now";
+                            const mins = Math.floor(ms / 60000);
+                            if (mins < 1) return "just now";
+                            if (mins < 60) return `${mins}m ago`;
+                            const hrs = Math.floor(mins / 60);
+                            if (hrs < 24) return `${hrs}h ago`;
+                            return `${Math.floor(hrs / 24)}d ago`;
+                          } catch { return null; }
+                        };
+
+                        // Next sync countdown
+                        const nextIn = (() => {
+                          if (!c.logs.nextSyncAt) return null;
+                          try {
+                            const secs = (new Date(c.logs.nextSyncAt).getTime() - Date.now()) / 1000;
+                            if (secs <= 0) return "soon";
+                            const h = Math.floor(secs / 3600);
+                            const m = Math.floor((secs % 3600) / 60);
+                            return h > 0 ? `${h}h ${m}m` : `${m}m`;
+                          } catch { return null; }
+                        })();
+
+                        return (
+                          <div
+                            key={c.name}
+                            className={`relative rounded-lg border p-2.5 transition-colors ${
+                              c.logs.syncing
+                                ? "border-blue-400/20 bg-blue-500/[0.06]"
+                                : c.logs.cookieWarning
+                                  ? "border-orange-400/20 bg-orange-500/[0.04]"
+                                  : !c.running
+                                    ? "border-red-400/15 bg-red-500/[0.03]"
+                                    : "border-white/[0.06] bg-white/[0.03]"
+                            }`}
+                          >
+                            {/* Status dot */}
+                            <div className="flex items-center gap-1.5 mb-1.5">
+                              <span className={`inline-block h-1.5 w-1.5 rounded-full ${
+                                c.logs.syncing
+                                  ? "bg-blue-400 animate-pulse"
+                                  : c.running
+                                    ? "bg-emerald-400"
+                                    : "bg-red-400"
+                              }`} />
+                              <span className="text-xs font-medium text-white/80 capitalize truncate">{displayName}</span>
+                              {isShared && (
+                                <span className="text-[8px] uppercase tracking-wider text-white/30 font-bold">shared</span>
+                              )}
+                            </div>
+
+                            {/* Last sync info */}
+                            <div className="space-y-1">
+                              {c.logs.syncing ? (
+                                <div className="flex items-center gap-1">
+                                  <RefreshCw className="h-2.5 w-2.5 animate-spin text-blue-400" />
+                                  <span className="text-[10px] text-blue-300">
+                                    Syncing{c.logs.totalInCloud ? ` (${c.logs.totalInCloud.toLocaleString()} items)` : "…"}
+                                  </span>
+                                </div>
+                              ) : c.logs.lastSyncEnd ? (
+                                <div className="flex items-center gap-1">
+                                  <CheckCircle2 className="h-2.5 w-2.5 text-emerald-400/60" />
+                                  <span className="text-[10px] text-white/50">
+                                    {relTime(c.logs.lastSyncEnd)}
+                                  </span>
+                                  {c.logs.filesDownloaded > 0 && (
+                                    <span className="text-[10px] text-emerald-400/70">
+                                      +{c.logs.filesDownloaded}
+                                    </span>
+                                  )}
+                                  {c.logs.totalTime && (
+                                    <span className="text-[10px] text-white/30">
+                                      ({c.logs.totalTime})
+                                    </span>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="text-[10px] text-white/30">No sync data</span>
+                              )}
+
+                              {/* iCloud library size */}
+                              {c.logs.totalInCloud && !c.logs.syncing && (
+                                <div className="flex items-center gap-1">
+                                  <ImageIcon className="h-2.5 w-2.5 text-white/25" />
+                                  <span className="text-[10px] text-white/35">{c.logs.totalInCloud.toLocaleString()} items</span>
+                                </div>
+                              )}
+
+                              {/* Next sync */}
+                              {nextIn && !c.logs.syncing && (
+                                <div className="flex items-center gap-1">
+                                  <Clock className="h-2.5 w-2.5 text-white/25" />
+                                  <span className="text-[10px] text-white/35">Next: {nextIn}</span>
+                                </div>
+                              )}
+
+                              {/* Cookie status */}
+                              {c.logs.cookieDaysLeft !== null && (
+                                <div className="flex items-center gap-1">
+                                  {c.logs.cookieWarning ? (
+                                    <AlertTriangle className="h-2.5 w-2.5 text-orange-400" />
+                                  ) : (
+                                    <Clock className="h-2.5 w-2.5 text-white/20" />
+                                  )}
+                                  <span className={`text-[10px] ${c.logs.cookieWarning ? 'text-orange-300/80' : 'text-white/30'}`}>
+                                    Cookie: {c.logs.cookieDaysLeft}d
+                                  </span>
+                                </div>
+                              )}
+
+                              {/* Container stopped */}
+                              {!c.running && (
+                                <div className="flex items-center gap-1">
+                                  <Circle className="h-2.5 w-2.5 text-red-400/60" />
+                                  <span className="text-[10px] text-red-300/70">Stopped</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </GlassCard>
 
               </div>
             </section>
