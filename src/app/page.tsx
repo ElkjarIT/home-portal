@@ -504,9 +504,9 @@ export default function DashboardPage() {
                                 <span className="text-xs text-white/50">Videos</span>
                                 <span className="text-xs font-semibold tabular-nums text-white/85">{immichStats.videos.toLocaleString()}</span>
                               </div>
-                              <div className="flex items-center justify-between border-t border-white/[0.08] pt-1.5">
-                                <span className="text-xs font-medium text-white/60">Total</span>
-                                <span className="text-sm font-bold tabular-nums text-blue-300">{(immichStats.photos + immichStats.videos).toLocaleString()}</span>
+                              <div className="mt-1 flex items-center justify-between border-t border-blue-400/10 pt-1.5">
+                                <span className="text-[10px] font-semibold uppercase tracking-wider text-blue-400/50">Total</span>
+                                <span className="text-xs font-bold tabular-nums text-blue-300">{(immichStats.photos + immichStats.videos).toLocaleString()}</span>
                               </div>
                             </div>
                           ) : (
@@ -532,9 +532,9 @@ export default function DashboardPage() {
                                 <span className="text-xs text-white/50">Free</span>
                                 <span className="text-xs font-semibold tabular-nums text-white/85">{immichStorage.diskAvailable}</span>
                               </div>
-                              <div className="flex items-center justify-between border-t border-white/[0.08] pt-1.5">
-                                <span className="text-xs font-medium text-white/60">Total</span>
-                                <span className="text-sm font-bold tabular-nums text-blue-300">{immichStorage.diskSize}</span>
+                              <div className="mt-1 flex items-center justify-between border-t border-blue-400/10 pt-1.5">
+                                <span className="text-[10px] font-semibold uppercase tracking-wider text-blue-400/50">Total</span>
+                                <span className="text-xs font-bold tabular-nums text-blue-300">{immichStorage.diskSize}</span>
                               </div>
                               {/* Storage usage bar — animated dual segment */}
                               {(() => {
@@ -600,6 +600,15 @@ export default function DashboardPage() {
                                     </div>
                                   );
                                 })}
+                              {(() => {
+                                const totalJobs = immichQueues.reduce((s, q) => s + q.active + q.waiting, 0);
+                                return (
+                                  <div className="mt-1 flex items-center justify-between border-t border-blue-400/10 pt-1.5">
+                                    <span className="text-[10px] font-semibold uppercase tracking-wider text-blue-400/50">Total</span>
+                                    <span className="text-xs font-bold tabular-nums text-blue-300">{totalJobs.toLocaleString()}</span>
+                                  </div>
+                                );
+                              })()}
                             </div>
                           ) : (
                             <p className="text-xs text-white/40">No jobs</p>
