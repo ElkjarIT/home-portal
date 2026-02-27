@@ -760,7 +760,7 @@ export default function DashboardPage() {
                                     <div key={q.name} className="flex items-center justify-between">
                                       <div className="flex items-center gap-1.5 truncate mr-2">
                                         <span className={`text-xs truncate ${q.isPaused ? "text-white/30 italic" : "text-white/50"}`}>{q.name}</span>
-                                        {q.isPaused && (
+                                        {q.isPaused ? (
                                           <button
                                             onClick={(e) => {
                                               e.preventDefault();
@@ -774,9 +774,25 @@ export default function DashboardPage() {
                                             className="flex h-3.5 items-center gap-0.5 rounded bg-orange-500/15 px-1 text-[8px] font-bold uppercase tracking-wider text-orange-400/80 hover:bg-orange-500/25 hover:text-orange-300 active:scale-90 transition-all"
                                             title={`Resume ${q.name}`}
                                           >
-                                            <Pause className="h-2 w-2" /> Paused
+                                            <Play className="h-2 w-2" /> Paused
                                           </button>
-                                        )}
+                                        ) : (q.active + q.waiting) > 0 ? (
+                                          <button
+                                            onClick={(e) => {
+                                              e.preventDefault();
+                                              e.stopPropagation();
+                                              fetch("/api/immich/jobs/command", {
+                                                method: "POST",
+                                                headers: { "Content-Type": "application/json" },
+                                                body: JSON.stringify({ jobName: q.key, command: "pause", force: false }),
+                                              });
+                                            }}
+                                            className="flex h-3.5 items-center gap-0.5 rounded bg-white/[0.05] px-1 text-[8px] font-bold uppercase tracking-wider text-white/30 hover:bg-orange-500/15 hover:text-orange-400/80 active:scale-90 transition-all"
+                                            title={`Pause ${q.name}`}
+                                          >
+                                            <Pause className="h-2 w-2" />
+                                          </button>
+                                        ) : null}
                                       </div>
                                       <div className="flex items-center gap-1.5">
                                         {q.active > 0 ? (

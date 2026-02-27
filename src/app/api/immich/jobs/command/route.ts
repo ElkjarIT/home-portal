@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
  * Commands: "start", "pause", "resume", "empty"
  * We only allow "start" for safety.
  */
-const ALLOWED_COMMANDS = new Set(["start", "resume"]);
+const ALLOWED_COMMANDS = new Set(["start", "resume", "pause"]);
 
 /**
  * Known Immich job names that we allow triggering.
