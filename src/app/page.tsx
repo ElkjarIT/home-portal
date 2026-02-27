@@ -33,6 +33,9 @@ import {
   Play,
   Pause,
   Square,
+  Navigation,
+  Cable,
+  Gauge,
 } from "lucide-react";
 
 // ——— Room lights from HA ———
@@ -940,8 +943,15 @@ export default function DashboardPage() {
                       const insideTemp = haStates.find((e) => e.entity_id === "sensor.bilskirner_inside_temperature");
                       const outsideTemp = haStates.find((e) => e.entity_id === "sensor.bilskirner_outside_temperature");
                       const chargeLimit = haStates.find((e) => e.entity_id === "number.bilskirner_charge_limit");
+                      const chargeCable = haStates.find((e) => e.entity_id === "binary_sensor.bilskirner_charge_cable");
+                      const shiftState = haStates.find((e) => e.entity_id === "sensor.bilskirner_shift_state");
+                      const speedSensor = haStates.find((e) => e.entity_id === "sensor.bilskirner_speed");
                       const isCharging = chargingBin?.state === "on";
                       const statusText = chargingEnum?.state ?? "unknown";
+                      const isCableConnected = chargeCable?.state === "on";
+                      const shiftVal = shiftState?.state ?? "p";
+                      const isDriving = shiftVal === "d" || shiftVal === "r" || shiftVal === "n";
+                      const speedKmh = speedSensor ? parseFloat(speedSensor.state) : 0;
                       const powerKw = chargerPower ? parseFloat(chargerPower.state) : 0;
                       const addedKwh = energyAdded ? parseFloat(energyAdded.state) : 0;
                       const battery = battLevel ? parseInt(battLevel.state, 10) : NaN;
@@ -959,42 +969,83 @@ export default function DashboardPage() {
                         <div className={`rounded-xl border-2 p-3 ${
                           isCharging
                             ? "border-green-400/30 bg-gradient-to-br from-green-500/[0.08] via-emerald-500/[0.04] to-transparent shadow-[0_0_24px_rgba(74,222,128,0.08)]"
-                            : "border-white/[0.12] bg-gradient-to-br from-white/[0.06] via-white/[0.03] to-transparent"
+                            : isDriving
+                              ? "border-blue-400/25 bg-gradient-to-br from-blue-500/[0.08] via-cyan-500/[0.04] to-transparent shadow-[0_0_24px_rgba(59,130,246,0.08)]"
+                              : "border-white/[0.12] bg-gradient-to-br from-white/[0.06] via-white/[0.03] to-transparent"
                         }`}>
                           <div className="mb-2 flex items-center gap-2">
                             <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${
-                              isCharging ? "bg-green-500/20" : "bg-white/[0.08]"
+                              isCharging ? "bg-green-500/20" : isDriving ? "bg-blue-500/20" : "bg-white/[0.08]"
                             }`}>
-                              <Car className={`h-4 w-4 ${isCharging ? "text-green-400" : "text-white/60"}`} />
+                              {isDriving ? (
+                                <Navigation className="h-4 w-4 text-blue-400 animate-ev-drive-icon" />
+                              ) : (
+                                <Car className={`h-4 w-4 ${isCharging ? "text-green-400" : "text-white/60"}`} />
+                              )}
                             </div>
                             <span className="text-sm font-semibold text-white">Bilskirner</span>
+
+                            {/* Contextual status badge */}
+                            {isDriving ? (
+                              <span className="flex items-center gap-1 text-blue-400 animate-pulse">
+                                <Gauge className="h-3.5 w-3.5" />
+                                <span className="text-xs font-bold tabular-nums">{speedKmh > 0 ? `${speedKmh.toFixed(0)} km/h` : shiftVal === "r" ? "Reverse" : shiftVal === "n" ? "Neutral" : "Driving"}</span>
+                              </span>
+                            ) : isCharging ? (
+                              <span className="flex items-center gap-1 animate-pulse text-green-400">
+                                <Zap className="h-3.5 w-3.5" />
+                                <span className="text-xs font-bold">CHARGING</span>
+                              </span>
+                            ) : isCableConnected ? (
+                              <span className="flex items-center gap-1.5 text-yellow-300/80">
+                                <Cable className="h-3.5 w-3.5" />
+                                <span className="text-[11px] font-semibold">Plugged In{statusText === "complete" ? " — Complete" : statusText === "stopped" ? " — Idle" : ""}</span>
+                              </span>
+                            ) : (
+                              <span className="flex items-center gap-1.5 text-white/35">
+                                <Plug className="h-3.5 w-3.5" />
+                                <span className="text-[11px] font-medium">Not Plugged In</span>
+                              </span>
+                            )}
+
                             {/* Charge toggle button */}
-                            {statusText !== "disconnected" && (
+                            {statusText !== "disconnected" && !isDriving && (
                               <button
                                 onClick={() => setEvChargeConfirm(chargeEnabled ? "stop" : "start")}
                                 disabled={togglingEntities.has("switch.bilskirner_charge")}
-                                className={`ml-auto flex h-6 items-center gap-1 rounded-md px-2 text-[10px] font-bold uppercase tracking-wider transition-all duration-200 active:scale-90 ${
+                                className={`ml-auto flex h-7 items-center gap-1.5 rounded-lg px-3 text-[11px] font-bold uppercase tracking-wider transition-all duration-200 active:scale-90 ring-1 ${
                                   chargeEnabled
-                                    ? "bg-green-500/15 text-green-400 hover:bg-red-500/15 hover:text-red-400"
-                                    : "bg-white/[0.06] text-white/40 hover:bg-green-500/15 hover:text-green-400"
+                                    ? "bg-green-500/20 text-green-400 ring-green-400/25 hover:bg-red-500/20 hover:text-red-400 hover:ring-red-400/25 shadow-[0_0_10px_rgba(74,222,128,0.1)]"
+                                    : "bg-white/[0.06] text-white/50 ring-white/[0.10] hover:bg-green-500/20 hover:text-green-400 hover:ring-green-400/25"
                                 }`}
                                 title={chargeEnabled ? "Stop charging" : "Start charging"}
                               >
                                 {togglingEntities.has("switch.bilskirner_charge") ? (
-                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
                                 ) : chargeEnabled ? (
-                                  <><Square className="h-2.5 w-2.5 fill-current" /> Stop Charge</>
+                                  <><Square className="h-3 w-3 fill-current" /> Stop Charge</>
                                 ) : (
-                                  <><Play className="h-2.5 w-2.5 fill-current" /> Start Charge</>
+                                  <><Play className="h-3 w-3 fill-current" /> Start Charge</>
                                 )}
                               </button>
                             )}
-                            {isCharging && (
-                              <span className={`${statusText === "disconnected" ? "ml-auto" : ""} flex items-center gap-1 animate-pulse text-green-400`}>
-                                <Zap className="h-3.5 w-3.5" /> CHARGING
-                              </span>
-                            )}
                           </div>
+
+                          {/* Driving road animation */}
+                          {isDriving && (
+                            <div className="mb-2 relative h-6 rounded-lg overflow-hidden bg-slate-800/50">
+                              <div className="absolute inset-0 flex items-center animate-ev-road">
+                                <div className="flex gap-6 w-[200%]">
+                                  {Array.from({ length: 20 }).map((_, i) => (
+                                    <div key={i} className="h-[2px] w-8 flex-shrink-0 rounded-full bg-yellow-400/40" />
+                                  ))}
+                                </div>
+                              </div>
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-blue-300/70">On the Road</span>
+                              </div>
+                            </div>
+                          )}
 
                           <div className="flex items-stretch gap-3">
                             {/* LEFT — Battery visual + charge info */}

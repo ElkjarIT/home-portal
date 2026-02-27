@@ -83,6 +83,9 @@ const WANTED_ENTITIES = new Set([
   "sensor.bilskirner_outside_temperature",
   "number.bilskirner_charge_limit",
   "switch.bilskirner_charge",
+  "binary_sensor.bilskirner_charge_cable",
+  "sensor.bilskirner_shift_state",
+  "sensor.bilskirner_speed",
 ]);
 
 export async function GET() {

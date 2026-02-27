@@ -257,3 +257,21 @@
   0% { transform: translateX(-100%); }
   100% { transform: translateX(100%); }
 }
+
+/* EV driving animations */
+@keyframes ev-road {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-ev-road {
+  animation: ev-road 1.5s linear infinite;
+}
+
+@keyframes ev-drive-icon {
+  0%, 100% { transform: translateY(0) rotate(-45deg); }
+  25% { transform: translateY(-1px) rotate(-45deg); }
+  75% { transform: translateY(1px) rotate(-45deg); }
+}
+.animate-ev-drive-icon {
+  animation: ev-drive-icon 0.8s ease-in-out infinite;
+}
