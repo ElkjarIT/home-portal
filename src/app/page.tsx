@@ -203,6 +203,37 @@ export default function DashboardPage() {
   const [energyTodayKwh, setEnergyTodayKwh] = useState(0);
   const [deviceToday, setDeviceToday] = useState<DeviceEnergy[]>([]);
   const [energyLoading, setEnergyLoading] = useState(true);
+  const [togglingEntities, setTogglingEntities] = useState<Set<string>>(new Set());
+
+  // Helper: call a Home Assistant service via our API
+  async function callHaService(domain: string, service: string, entity_id: string) {
+    setTogglingEntities((prev) => new Set(prev).add(entity_id));
+    try {
+      const res = await fetch("/api/ha/services", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ domain, service, entity_id }),
+      });
+      if (res.ok) {
+        // Optimistically update local state
+        setHaStates((prev) =>
+          prev.map((e) =>
+            e.entity_id === entity_id
+              ? { ...e, state: service.includes("turn_on") ? "on" : service.includes("turn_off") ? "off" : e.state }
+              : e
+          )
+        );
+      }
+    } catch {
+      // ignore
+    } finally {
+      setTogglingEntities((prev) => {
+        const next = new Set(prev);
+        next.delete(entity_id);
+        return next;
+      });
+    }
+  }
 
   // Keep a stable ref so the effect never re-runs
   const updateRef = useRef(updateSession);
@@ -356,14 +387,26 @@ export default function DashboardPage() {
                         const state = lights.find((l) => l.entity_id === room.entity_id);
                         const isOn = state?.state === "on";
                         const isUnavailable = !state || state.state === "unavailable";
+                        const isToggling = togglingEntities.has(room.entity_id);
                         return (
-                          <div
+                          <button
                             key={room.entity_id}
-                            className={`flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors ${
-                              isOn ? "bg-amber-400/10" : isUnavailable && !loading ? "opacity-30" : ""
-                            }`}
+                            onClick={() => {
+                              if (isUnavailable || isToggling) return;
+                              callHaService("light", isOn ? "turn_off" : "turn_on", room.entity_id);
+                            }}
+                            disabled={isUnavailable || isToggling}
+                            className={`flex items-center gap-2 rounded-lg px-2 py-1.5 transition-all duration-200 cursor-pointer select-none ${
+                              isOn
+                                ? "bg-amber-400/10 hover:bg-amber-400/20 active:scale-95"
+                                : isUnavailable && !loading
+                                  ? "opacity-30 cursor-not-allowed"
+                                  : "hover:bg-white/[0.06] active:scale-95"
+                            } ${isToggling ? "animate-pulse" : ""}`}
                           >
-                            {isOn ? (
+                            {isToggling ? (
+                              <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-amber-300/60" />
+                            ) : isOn ? (
                               <Lightbulb className="h-3.5 w-3.5 shrink-0 text-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.5)]" />
                             ) : (
                               <LightbulbOff className="h-3.5 w-3.5 shrink-0 text-white/35" />
@@ -371,7 +414,7 @@ export default function DashboardPage() {
                             <span className={`text-xs font-medium truncate ${isOn ? "text-amber-200" : "text-white/55"}`}>
                               {room.name}
                             </span>
-                          </div>
+                          </button>
                         );
                       })}
                     </div>
@@ -440,6 +483,28 @@ export default function DashboardPage() {
                     <div className="flex items-center gap-2 mb-2">
                       <Tv className="h-4 w-4 text-slate-300" />
                       <span className="text-sm font-medium text-white">Apple TV</span>
+                      {/* Power toggle */}
+                      {!loading && (
+                        <button
+                          onClick={() => {
+                            const isOff = appleTvState === "off" || appleTvState === "unknown" || !appleTvState;
+                            callHaService("media_player", isOff ? "turn_on" : "turn_off", APPLE_TV_ENTITY);
+                          }}
+                          disabled={togglingEntities.has(APPLE_TV_ENTITY)}
+                          className={`ml-auto flex h-6 w-6 items-center justify-center rounded-md transition-all duration-200 active:scale-90 ${
+                            appleTvState === "off" || appleTvState === "unknown" || !appleTvState
+                              ? "bg-white/[0.06] hover:bg-white/[0.12] text-white/35 hover:text-white/60"
+                              : "bg-green-500/15 hover:bg-green-500/25 text-green-400"
+                          }`}
+                          title={appleTvState === "off" || appleTvState === "unknown" || !appleTvState ? "Turn on" : "Turn off"}
+                        >
+                          {togglingEntities.has(APPLE_TV_ENTITY) ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <Power className="h-3.5 w-3.5" />
+                          )}
+                        </button>
+                      )}
                     </div>
                     {/* TV Screen */}
                     <div className={`relative flex-1 min-h-[100px] rounded-lg border-2 overflow-hidden transition-all duration-500 ${
