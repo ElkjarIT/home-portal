@@ -9,10 +9,15 @@ import {
   Home,
   ExternalLink,
   ChevronDown,
+  ChevronRight,
   Shield,
   LayoutDashboard,
+  MoreHorizontal,
 } from "lucide-react";
 import { generalLinks, adminLinks } from "@/data/links";
+
+// Primary admin links (shown directly) vs secondary (in "More" submenu)
+const PRIMARY_ADMIN = new Set(["UniFi Network", "Proxmox VE", "NAS", "Nginx Proxy", "Pi-hole", "Portainer", "Entra ID"]);
 
 export function TopNav() {
   const pathname = usePathname();
@@ -21,11 +26,12 @@ export function TopNav() {
   const isAdmin = (session?.user as { isAdmin?: boolean })?.isAdmin ?? false;
 
   const [open, setOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const navRef = useRef<HTMLDivElement>(null);
 
   // Close on route change
-  useEffect(() => { setOpen(false); }, [pathname]);
+  useEffect(() => { setOpen(false); setMoreOpen(false); }, [pathname]);
 
   // Close on outside click
   useEffect(() => {
@@ -200,55 +206,89 @@ export function TopNav() {
             </div>
 
             {/* ——— Admin column (if admin) ——— */}
-            {isAdmin && (
-              <div className="space-y-2 border-l border-white/[0.06] pl-4">
-                <div className="flex items-center gap-2 border-b border-red-400/15 pb-2">
-                  <Shield className="h-3.5 w-3.5 text-red-400" />
-                  <span className="text-xs font-bold uppercase tracking-widest text-red-400/60">Admin</span>
-                </div>
-                {adminLinks.map((link) => {
-                  const Icon = link.icon;
-                  if (link.children) {
-                    return link.children.map((child) => (
-                      <a
-                        key={child.name}
-                        href={child.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2.5 rounded-lg px-2 py-2 text-sm text-white/75 transition-colors hover:bg-white/[0.07] hover:text-white"
+            {isAdmin && (() => {
+              const primary = adminLinks.filter((l) => PRIMARY_ADMIN.has(l.name));
+              const secondary = adminLinks.filter((l) => !PRIMARY_ADMIN.has(l.name));
+              return (
+                <div className="space-y-2 border-l border-white/[0.06] pl-4">
+                  <div className="flex items-center gap-2 border-b border-red-400/15 pb-2">
+                    <Shield className="h-3.5 w-3.5 text-red-400" />
+                    <span className="text-xs font-bold uppercase tracking-widest text-red-400/60">Admin</span>
+                  </div>
+                  {/* Two-column compact grid */}
+                  <div className="grid grid-cols-2 gap-1">
+                    {primary.map((link) => {
+                      const Icon = link.icon;
+                      // Pi-hole: split button
+                      if (link.children) {
+                        return (
+                          <div key={link.name} className="col-span-2 flex overflow-hidden rounded-md border border-white/[0.06]">
+                            {link.children.map((child, i) => (
+                              <a
+                                key={child.name}
+                                href={child.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={`flex flex-1 items-center justify-center gap-1.5 px-2 py-1.5 text-xs text-white/70 transition-colors hover:bg-white/[0.07] hover:text-white ${
+                                  i > 0 ? "border-l border-white/[0.06]" : ""
+                                }`}
+                              >
+                                <Icon className={`h-3 w-3 ${link.iconColor}`} />
+                                <span className="font-medium">{link.name} {child.name}</span>
+                              </a>
+                            ))}
+                          </div>
+                        );
+                      }
+                      return (
+                        <a
+                          key={link.name}
+                          href={link.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs text-white/70 transition-colors hover:bg-white/[0.07] hover:text-white"
+                        >
+                          <Icon className={`h-3 w-3 shrink-0 ${link.iconColor}`} />
+                          <span className="font-medium truncate">{link.name}</span>
+                        </a>
+                      );
+                    })}
+                  </div>
+                  {/* "More" collapsible for less-used services */}
+                  {secondary.length > 0 && (
+                    <div className="pt-1">
+                      <button
+                        onClick={() => setMoreOpen((v) => !v)}
+                        className="flex w-full items-center gap-1.5 rounded-md px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-white/35 transition-colors hover:bg-white/[0.05] hover:text-white/55"
                       >
-                        <div className={`flex h-7 w-7 items-center justify-center rounded-md ${link.iconBg}`}>
-                          <Icon className={`h-3.5 w-3.5 ${link.iconColor}`} />
+                        <MoreHorizontal className="h-3 w-3" />
+                        <span>More Services</span>
+                        <ChevronRight className={`ml-auto h-3 w-3 transition-transform duration-200 ${moreOpen ? "rotate-90" : ""}`} />
+                      </button>
+                      {moreOpen && (
+                        <div className="mt-1 grid grid-cols-2 gap-1">
+                          {secondary.map((link) => {
+                            const Icon = link.icon;
+                            return (
+                              <a
+                                key={link.name}
+                                href={link.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs text-white/70 transition-colors hover:bg-white/[0.07] hover:text-white"
+                              >
+                                <Icon className={`h-3 w-3 shrink-0 ${link.iconColor}`} />
+                                <span className="font-medium truncate">{link.name}</span>
+                              </a>
+                            );
+                          })}
                         </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium">{link.name} — {child.name}</p>
-                          <p className="text-[11px] text-white/35 truncate">{child.url.replace(/^https?:\/\//, "").replace(/\/admin$/, "")}</p>
-                        </div>
-                        <ExternalLink className="h-3 w-3 shrink-0 text-white/20" />
-                      </a>
-                    ));
-                  }
-                  return (
-                    <a
-                      key={link.name}
-                      href={link.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2.5 rounded-lg px-2 py-2 text-sm text-white/75 transition-colors hover:bg-white/[0.07] hover:text-white"
-                    >
-                      <div className={`flex h-7 w-7 items-center justify-center rounded-md ${link.iconBg}`}>
-                        <Icon className={`h-3.5 w-3.5 ${link.iconColor}`} />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium">{link.name}</p>
-                        <p className="text-[11px] text-white/35 truncate">{link.description}</p>
-                      </div>
-                      <ExternalLink className="h-3 w-3 shrink-0 text-white/20" />
-                    </a>
-                  );
-                })}
-              </div>
-            )}
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         </div>
       )}
