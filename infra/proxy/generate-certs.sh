@@ -30,6 +30,7 @@ PASS_FILE="/home/step/secrets/password"  # Provisioner password inside container
 declare -A SERVICES=(
   [portal]="portal.${DOMAIN}"
   [immich]="immich.${DOMAIN}"
+  [infisical]="infisical.${DOMAIN}"
   [pihole]="pihole.${DOMAIN}"
   [pihole2]="pihole2.${DOMAIN}"
   [nas01]="nas01.${DOMAIN}"

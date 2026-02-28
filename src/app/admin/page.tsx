@@ -25,6 +25,8 @@ import {
   Activity,
   Wrench,
   Globe2,
+  Vault,
+  ExternalLink,
 } from "lucide-react";
 import Link from "next/link";
 import { services, categories } from "@/data/services";
@@ -119,6 +121,39 @@ export default function AdminPage() {
               System Status
             </h3>
             <SystemStatusCard />
+          </section>
+
+          <Separator className="mb-6" />
+
+          {/* Vault */}
+          <section className="mb-6">
+            <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              <Vault className="h-4 w-4 text-amber-500" />
+              Vault
+            </h3>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <Card className="border-l-3 border-l-amber-500 hover:shadow-md transition-shadow">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-md bg-amber-100 dark:bg-amber-950/40">
+                      <Vault className="h-4.5 w-4.5 text-amber-600 dark:text-amber-400" />
+                    </div>
+                    <CardTitle className="text-lg">Infisical</CardTitle>
+                  </div>
+                  <CardDescription>
+                    Secrets management — runtime injection for all services
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Link href="https://infisical.aser.dk" target="_blank" rel="noopener noreferrer">
+                    <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white">
+                      <ExternalLink className="mr-2 h-3.5 w-3.5" />
+                      Open Vault
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            </div>
           </section>
 
           <Separator className="mb-6" />
