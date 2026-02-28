@@ -991,7 +991,7 @@ export default function DashboardPage() {
                           const nextSync = [personal?.logs.nextSyncAt, shared?.logs.nextSyncAt]
                             .filter(Boolean)
                             .sort((a, b) => new Date(a!).getTime() - new Date(b!).getTime())[0] ?? null;
-                          const hasErrors = [personal, shared].some(c => c && c.logs.errors.length > 0);
+                          const hasErrors = [personal, shared].some(c => c && c.logs.errors.length > 0 && c.logs.lastSyncResult !== "success");
 
                           return (
                             <div
